@@ -51,6 +51,9 @@ export default function Header() {
 
   const isCustomer = user?.roles?.includes('customer');
   const isBusiness = user?.roles?.includes('business') || user?.roles?.includes('salon_owner');
+  const isBusinessRoute = location.startsWith('/business');
+  const isCustomerDashboard = location.startsWith('/customer/dashboard');
+  const showBusinessNav = isBusinessRoute && isBusiness;
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -121,50 +124,60 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1 bg-gradient-to-r from-violet-50/90 via-white/90 to-rose-50/90 backdrop-blur-sm px-2 py-1.5 rounded-full border border-violet-100/50">
-            <NavLink href="/">Home</NavLink>
-            <NavLink href="/salons" icon={Building2}>Studios</NavLink>
-            <NavLink href="/events" icon={Calendar}>Events</NavLink>
-            <NavLink href="/shop" icon={Store}>Shop</NavLink>
-            <NavLink href="/all-offers" icon={Gift} highlight>Offers</NavLink>
-          </nav>
+          {/* Desktop Navigation - Hidden on customer dashboard */}
+          {!isCustomerDashboard && (
+            <nav className="hidden lg:flex items-center gap-1 bg-gradient-to-r from-violet-50/90 via-white/90 to-rose-50/90 backdrop-blur-sm px-2 py-1.5 rounded-full border border-violet-100/50">
+              {showBusinessNav ? (
+                <NavLink href="/business/dashboard" icon={LayoutDashboard}>Dashboard</NavLink>
+              ) : (
+                <>
+                  <NavLink href="/">Home</NavLink>
+                  <NavLink href="/salons" icon={Building2}>Studios</NavLink>
+                  <NavLink href="/events" icon={Calendar}>Events</NavLink>
+                  <NavLink href="/shop" icon={Store}>Shop</NavLink>
+                  <NavLink href="/all-offers" icon={Gift} highlight>Offers</NavLink>
+                </>
+              )}
+            </nav>
+          )}
 
           {/* Right side actions */}
           <div className="flex items-center gap-2 lg:gap-3">
-            {/* E-commerce Icons - Cart visible to all users */}
-            <div className="hidden sm:flex items-center gap-1">
-              {isAuthenticated && isCustomer && (
-                <Link href="/wishlist">
+            {/* E-commerce Icons - Hidden for business users on business routes */}
+            {!showBusinessNav && (
+              <div className="hidden sm:flex items-center gap-1">
+                {isAuthenticated && isCustomer && (
+                  <Link href="/wishlist">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="relative h-9 w-9 rounded-full hover:bg-pink-50 hover:text-pink-600 transition-colors"
+                    >
+                      <Heart className="h-4 w-4" />
+                      {wishlistItemsCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-bold bg-pink-500 text-white rounded-full">
+                          {wishlistItemsCount}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                )}
+                <Link href="/cart">
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    className="relative h-9 w-9 rounded-full hover:bg-pink-50 hover:text-pink-600 transition-colors"
+                    className="relative h-9 w-9 rounded-full hover:bg-violet-50 hover:text-violet-600 transition-colors"
                   >
-                    <Heart className="h-4 w-4" />
-                    {wishlistItemsCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-bold bg-pink-500 text-white rounded-full">
-                        {wishlistItemsCount}
+                    <ShoppingCart className="h-4 w-4" />
+                    {cartItemsCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-bold bg-violet-600 text-white rounded-full">
+                        {cartItemsCount}
                       </span>
                     )}
                   </Button>
                 </Link>
-              )}
-              <Link href="/cart">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="relative h-9 w-9 rounded-full hover:bg-violet-50 hover:text-violet-600 transition-colors"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {cartItemsCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-bold bg-violet-600 text-white rounded-full">
-                      {cartItemsCount}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-            </div>
+              </div>
+            )}
 
             {!isAuthenticated && (
               <>
@@ -202,8 +215,8 @@ export default function Header() {
 
             {isAuthenticated && (
               <>
-                {/* Wallet button for customers */}
-                {isCustomer && (
+                {/* Wallet button for customers - Hidden on customer dashboard */}
+                {isCustomer && !isCustomerDashboard && (
                   <Link href="/wallet">
                     <Button 
                       variant="ghost" 
@@ -215,8 +228,8 @@ export default function Header() {
                   </Link>
                 )}
 
-                {/* User Menu */}
-                <div className="hidden md:block">
+                {/* User Menu - Hidden on customer dashboard */}
+                <div className={`hidden md:block ${isCustomerDashboard ? 'md:hidden' : ''}`}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
@@ -336,7 +349,8 @@ export default function Header() {
               </>
             )}
 
-            {/* Mobile menu */}
+            {/* Mobile menu - Hidden on customer dashboard (sidebar handles mobile nav) */}
+            {!isCustomerDashboard && (
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button 
@@ -388,35 +402,46 @@ export default function Header() {
                     <div className="flex flex-col gap-1">
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Menu</p>
                       
-                      <Link href="/" onClick={closeMobileMenu}>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
-                          <span className="font-medium">Home</span>
-                        </button>
-                      </Link>
-                      <Link href="/salons" onClick={closeMobileMenu}>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
-                          <Building2 className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">Studios</span>
-                        </button>
-                      </Link>
-                      <Link href="/events" onClick={closeMobileMenu}>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
-                          <Calendar className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">Events</span>
-                        </button>
-                      </Link>
-                      <Link href="/shop" onClick={closeMobileMenu}>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
-                          <Store className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">Shop</span>
-                        </button>
-                      </Link>
-                      <Link href="/all-offers" onClick={closeMobileMenu}>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors text-left">
-                          <Gift className="h-4 w-4" />
-                          <span className="font-medium">Offers</span>
-                        </button>
-                      </Link>
+                      {showBusinessNav ? (
+                        <Link href="/business/dashboard" onClick={closeMobileMenu}>
+                          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-violet-700 bg-violet-50 hover:bg-violet-100 transition-colors text-left">
+                            <LayoutDashboard className="h-4 w-4" />
+                            <span className="font-medium">Dashboard</span>
+                          </button>
+                        </Link>
+                      ) : (
+                        <>
+                          <Link href="/" onClick={closeMobileMenu}>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
+                              <span className="font-medium">Home</span>
+                            </button>
+                          </Link>
+                          <Link href="/salons" onClick={closeMobileMenu}>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
+                              <Building2 className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">Studios</span>
+                            </button>
+                          </Link>
+                          <Link href="/events" onClick={closeMobileMenu}>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
+                              <Calendar className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">Events</span>
+                            </button>
+                          </Link>
+                          <Link href="/shop" onClick={closeMobileMenu}>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-left">
+                              <Store className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">Shop</span>
+                            </button>
+                          </Link>
+                          <Link href="/all-offers" onClick={closeMobileMenu}>
+                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors text-left">
+                              <Gift className="h-4 w-4" />
+                              <span className="font-medium">Offers</span>
+                            </button>
+                          </Link>
+                        </>
+                      )}
 
                       {!isAuthenticated && (
                         <>
@@ -576,6 +601,7 @@ export default function Header() {
                 </div>
               </SheetContent>
             </Sheet>
+            )}
           </div>
         </div>
       </div>

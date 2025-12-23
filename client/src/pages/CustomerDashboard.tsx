@@ -5,12 +5,16 @@ import { z } from "zod";
 import { profileUpdateSchema, preferencesSchema } from "@shared/schema";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "wouter";
+import { useCart } from "@/contexts/CartContext";
+import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { CustomerIconSidebar } from "@/components/customer-dashboard/CustomerIconSidebar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -224,12 +228,18 @@ type ProfileFormData = z.infer<typeof profileUpdateSchema>;
 type PreferencesFormData = z.infer<typeof preferencesSchema>;
 
 export default function CustomerDashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const [, setLocation] = useLocation();
+  const { itemCount: cartItemsCount } = useCart();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [rescheduleAppointment, setRescheduleAppointment] = useState<Appointment | null>(null);
+  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // Profile management state
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -904,30 +914,113 @@ export default function CustomerDashboard() {
     );
   }
 
+  const handleSidebarNavigate = (tabId: string, route?: string) => {
+    if (route) {
+      setLocation(route);
+      setMobileDrawerOpen(false);
+      return;
+    }
+    if (tabId === "home") {
+      setActiveTab("upcoming");
+    } else {
+      setActiveTab(tabId);
+    }
+    setMobileDrawerOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully",
+        description: "See you next time!",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header Section */}
-        <div className="mb-8" data-testid="header-section">
-          <div className="flex items-center gap-6 mb-6">
-            <Avatar className="h-16 w-16">
-              <AvatarImage 
-                src={user?.profileImageUrl} 
-                alt={`${user?.firstName || ''} ${user?.lastName || ''}`} 
-              />
-              <AvatarFallback className="text-lg font-semibold">
-                {getInitials(user?.firstName, user?.lastName)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-welcome">
-                Welcome back, {user?.firstName || 'Customer'}!
-              </h1>
-              <p className="text-muted-foreground">
-                Manage your appointments and beauty bookings
-              </p>
+      {!isMobile && (
+        <CustomerIconSidebar
+          activeTab={activeTab}
+          onNavigate={handleSidebarNavigate}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          user={user ? {
+            firstName: user.firstName || undefined,
+            lastName: user.lastName || undefined,
+            email: user.email || undefined,
+            profileImageUrl: user.profileImageUrl || undefined,
+          } : null}
+          onLogout={handleLogout}
+          upcomingCount={dashboardStatsWithUpcoming?.upcomingAppointments || 0}
+          cartCount={cartItemsCount}
+        />
+      )}
+
+      {isMobile && (
+        <Sheet open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
+          <SheetContent side="left" className="w-72 p-0 bg-slate-900 border-slate-800">
+            <CustomerIconSidebar
+              activeTab={activeTab}
+              onNavigate={handleSidebarNavigate}
+              isCollapsed={false}
+              onToggleCollapse={() => setMobileDrawerOpen(false)}
+              user={user ? {
+                firstName: user.firstName || undefined,
+                lastName: user.lastName || undefined,
+                email: user.email || undefined,
+                profileImageUrl: user.profileImageUrl || undefined,
+              } : null}
+              onLogout={handleLogout}
+              upcomingCount={dashboardStatsWithUpcoming?.upcomingAppointments || 0}
+              cartCount={cartItemsCount}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
+
+      <div className={`transition-all duration-300 ${!isMobile ? (sidebarCollapsed ? 'ml-16' : 'ml-64') : ''}`}>
+        <div className="container mx-auto px-4 py-8">
+          {isMobile && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mb-4 flex items-center gap-2"
+              onClick={() => setMobileDrawerOpen(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+              Menu
+            </Button>
+          )}
+
+          {/* Header Section */}
+          <div className="mb-8" data-testid="header-section">
+            <div className="flex items-center gap-6 mb-6">
+              <Avatar className="h-16 w-16">
+                <AvatarImage 
+                  src={user?.profileImageUrl} 
+                  alt={`${user?.firstName || ''} ${user?.lastName || ''}`} 
+                />
+                <AvatarFallback className="text-lg font-semibold">
+                  {getInitials(user?.firstName, user?.lastName)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-welcome">
+                  Welcome back, {user?.firstName || 'Customer'}!
+                </h1>
+                <p className="text-muted-foreground">
+                  Manage your appointments and beauty bookings
+                </p>
+              </div>
             </div>
-          </div>
 
           {/* Quick Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1025,31 +1118,8 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        {/* Main Tabs */}
+        {/* Main Tabs - Navigation via sidebar */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex" data-testid="tabs-navigation">
-            <TabsTrigger value="upcoming" className="flex items-center gap-2" data-testid="tab-upcoming">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Upcoming</span>
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2" data-testid="tab-history">
-              <History className="h-4 w-4" />
-              <span className="hidden sm:inline">History</span>
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2" data-testid="tab-profile">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2" data-testid="tab-payments">
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Payments</span>
-            </TabsTrigger>
-            <TabsTrigger value="memberships" className="flex items-center gap-2" data-testid="tab-memberships">
-              <Crown className="h-4 w-4" />
-              <span className="hidden sm:inline">Memberships</span>
-            </TabsTrigger>
-          </TabsList>
-
           {/* Upcoming Appointments Tab */}
           <TabsContent value="upcoming" className="space-y-4" data-testid="content-upcoming">
             <div className="flex items-center justify-between">
@@ -2555,6 +2625,7 @@ export default function CustomerDashboard() {
           bookingContext={chatSalonInfo.bookingContext}
         />
       )}
+      </div>
     </div>
   );
 }

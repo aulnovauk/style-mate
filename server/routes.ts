@@ -89,6 +89,7 @@ import { registerMobileUserRoutes } from "./routes/mobile-user.routes";
 import { registerMobileBookingsRoutes } from "./routes/mobile-bookings.routes";
 import { registerMobileOffersRoutes } from "./routes/mobile-offers.routes";
 import { registerMobilePackagesRoutes } from "./routes/mobile-packages.routes";
+import { registerMobileBusinessRoutes } from "./routes/mobile-business.routes";
 import { registerCancellationRoutes, registerMobileCancellationRoutes } from "./routes/cancellation.routes";
 import waitlistRoutes from "./routes/waitlist.routes";
 import mobileWaitlistRoutes from "./routes/mobile-waitlist.routes";
@@ -10581,19 +10582,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/salons/:salonId/available-slots", async (req, res) => {
     try {
       const { salonId } = req.params;
-      const { date, staffId } = req.query;
+      const { date, staffId, serviceId } = req.query;
 
       if (!date || typeof date !== "string") {
         return res.status(400).json({ error: "Date parameter is required" });
       }
 
-      const availableSlots = await storage.getAvailableTimeSlots(
+      // Get salon info for business hours fallback
+      const salon = await storage.getSalonById(salonId);
+      if (!salon) {
+        return res.status(404).json({ error: "Salon not found" });
+      }
+
+      // Try to get pre-generated time slots first
+      let timeSlots = await storage.getAvailableTimeSlots(
         salonId,
         date,
         staffId as string | undefined,
       );
 
-      res.json(availableSlots);
+      // If no database slots, generate from businessHours (production fallback)
+      if (timeSlots.length === 0 && salon.businessHours) {
+        const businessHours =
+          typeof salon.businessHours === "string"
+            ? JSON.parse(salon.businessHours)
+            : salon.businessHours;
+
+        const searchDateObj = new Date(date + "T00:00:00");
+        const dayNames = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ];
+        const dayName = dayNames[searchDateObj.getDay()];
+        const dayHours = businessHours[dayName];
+
+        if (dayHours && dayHours.open && dayHours.start && dayHours.end) {
+          // Generate slots from business hours (30-min intervals)
+          const [startHour, startMin] = dayHours.start.split(":").map(Number);
+          const [endHour, endMin] = dayHours.end.split(":").map(Number);
+
+          const slots: any[] = [];
+          let currentHour = startHour;
+          let currentMin = startMin;
+
+          while (
+            currentHour < endHour ||
+            (currentHour === endHour && currentMin < endMin)
+          ) {
+            const slotDateTime = new Date(searchDateObj);
+            slotDateTime.setHours(currentHour, currentMin, 0, 0);
+
+            slots.push({
+              id: `generated-${currentHour}-${currentMin}`,
+              salonId,
+              staffId: staffId || null,
+              startDateTime: slotDateTime,
+              endDateTime: new Date(slotDateTime.getTime() + 30 * 60000),
+              isBooked: 0,
+              isBlocked: 0,
+            });
+
+            currentMin += 30;
+            if (currentMin >= 60) {
+              currentMin = 0;
+              currentHour++;
+            }
+          }
+
+          timeSlots = slots;
+        }
+      }
+
+      // Get existing bookings for this date to check availability
+      const confirmedBookings = await storage.getBookingsBySalonId(salonId, {
+        status: "confirmed",
+        startDate: date,
+        endDate: date,
+      });
+      const pendingBookings = await storage.getBookingsBySalonId(salonId, {
+        status: "pending",
+        startDate: date,
+        endDate: date,
+      });
+      const bookings = [...confirmedBookings, ...pendingBookings];
+
+      // Get current time for past slot detection
+      const now = new Date();
+      const isToday = date === now.toISOString().split("T")[0];
+
+      // Helper function to check if a slot is booked
+      const isSlotBooked = (slotTime: Date, serviceDuration: number = 30): boolean => {
+        const slotStartMinutes = slotTime.getHours() * 60 + slotTime.getMinutes();
+        const slotEndMinutes = slotStartMinutes + serviceDuration;
+
+        for (const booking of bookings) {
+          const [bookingHours, bookingMinutes] = booking.bookingTime
+            .split(":")
+            .map(Number);
+          const bookingStartMinutes = bookingHours * 60 + bookingMinutes;
+          const bookingDuration = booking.serviceDuration || 30;
+          const bookingEndMinutes = bookingStartMinutes + bookingDuration;
+
+          // Check for overlap
+          if (
+            slotStartMinutes < bookingEndMinutes &&
+            slotEndMinutes > bookingStartMinutes
+          ) {
+            return true;
+          }
+        }
+        return false;
+      };
+
+      // Get service duration if serviceId is provided
+      let serviceDuration = 30;
+      if (serviceId && typeof serviceId === "string") {
+        const service = await storage.getService(serviceId);
+        if (service) {
+          serviceDuration = service.durationMinutes || 30;
+        }
+      }
+
+      // Transform to frontend-expected format with availability check
+      const formattedSlots = timeSlots
+        .map((slot: any) => {
+          const slotTime = new Date(slot.startDateTime);
+          const time = `${slotTime.getHours().toString().padStart(2, "0")}:${slotTime.getMinutes().toString().padStart(2, "0")}`;
+          
+          // Check if slot is in the past (for today's date)
+          const isPast = isToday && slotTime < now;
+          
+          // Check if slot is already booked
+          const booked = isSlotBooked(slotTime, serviceDuration);
+          
+          return {
+            time,
+            available: !isPast && !booked && !slot.isBlocked,
+          };
+        })
+        .filter((slot: any) => slot.available); // Only return available slots
+
+      res.json({ slots: formattedSlots });
     } catch (error) {
       console.error("Error fetching available slots:", error);
       res.status(500).json({ error: "Failed to fetch available slots" });
@@ -15612,6 +15746,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Customer reschedule appointment endpoint
+  app.patch(
+    "/api/customer/appointments/:id/reschedule",
+    requireCustomerAuth,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const { bookingDate, bookingTime } = req.body;
+
+        // Validate input
+        if (!bookingDate || !bookingTime) {
+          return res.status(400).json({
+            error: "Both bookingDate and bookingTime are required",
+          });
+        }
+
+        // Validate date format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(bookingDate)) {
+          return res.status(400).json({
+            error: "Invalid date format. Use YYYY-MM-DD",
+          });
+        }
+
+        // Validate time format (HH:MM)
+        const timeRegex = /^\d{2}:\d{2}$/;
+        if (!timeRegex.test(bookingTime)) {
+          return res.status(400).json({
+            error: "Invalid time format. Use HH:MM",
+          });
+        }
+
+        // Prevent rescheduling to past dates
+        const today = new Date().toISOString().split("T")[0];
+        if (bookingDate < today) {
+          return res.status(400).json({
+            error: "Cannot reschedule booking to a past date",
+          });
+        }
+
+        // Get the booking and verify ownership
+        const booking = await storage.getBooking(id);
+        if (!booking) {
+          return res.status(404).json({ error: "Appointment not found" });
+        }
+
+        // Verify customer owns this booking
+        if (booking.customerEmail !== req.user.email) {
+          return res.status(403).json({ error: "Access denied to this appointment" });
+        }
+
+        // Check if booking can be rescheduled (only pending and confirmed bookings)
+        if (!["pending", "confirmed"].includes(booking.status)) {
+          return res.status(400).json({
+            error: `Cannot reschedule a ${booking.status} booking. Only pending and confirmed bookings can be rescheduled.`,
+          });
+        }
+
+        // Perform the reschedule
+        const updatedBooking = await storage.rescheduleBooking(id, {
+          bookingDate,
+          bookingTime,
+        });
+
+        res.json({
+          success: true,
+          message: "Appointment rescheduled successfully",
+          booking: updatedBooking,
+        });
+      } catch (error: any) {
+        console.error("Error rescheduling appointment:", error);
+        if (error.message?.includes("conflicts")) {
+          return res.status(409).json({
+            error: "Time slot conflicts with existing booking",
+          });
+        }
+        res.status(500).json({ error: "Failed to reschedule appointment" });
+      }
+    },
+  );
+
   // ===============================================
   // DATA MIGRATION ENDPOINTS (Admin only)
   // ===============================================
@@ -17596,6 +17811,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mobile cancellation routes (structured reason tracking)
   registerMobileCancellationRoutes(app);
   console.log('✅ Mobile cancellation routes registered');
+
+  // Mobile Business App routes (dashboard, calendar, staff booking)
+  registerMobileBusinessRoutes(app);
+  console.log('✅ Mobile business routes registered');
 
   // Web cancellation routes (customer portal and salon analytics)
   registerCancellationRoutes(app);

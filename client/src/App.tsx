@@ -21,6 +21,7 @@ import { VersionManager } from '@/utils/versionManager';
 import { useJWTAuth } from '@/lib/auth';
 import { SessionExpiryWarning } from '@/components/SessionExpiryWarning';
 import Header from "@/components/Header";
+import { CustomerLayout } from "@/components/customer-dashboard/CustomerLayout";
 import Home from "@/pages/Home";
 import Salons from "@/pages/Salons";
 import Join from "@/pages/Join";
@@ -94,19 +95,26 @@ import { AIBeautyConsultant } from "@/components/chat/AIBeautyConsultant";
 function Router() {
   const [location] = useLocation();
   const isPublicKioskRoute = location.startsWith('/checkin/');
+  const isBusinessDashboardRoute = location.startsWith('/business') || location === '/dashboard';
   
   return (
     <div className="min-h-screen bg-background">
-      {!isPublicKioskRoute && <Header />}
+      {!isPublicKioskRoute && !isBusinessDashboardRoute && <Header />}
       <Switch>
         {/* QR Self Check-in Route (public kiosk page without header) */}
         <Route path="/checkin/:salonId">
           {(params) => <SelfCheckIn key={params.salonId} />}
         </Route>
         
-        <Route path="/" component={Home} />
-        <Route path="/salons" component={Salons} />
-        <Route path="/shop" component={Shop} />
+        <Route path="/">
+          {() => <CustomerLayout activeTab="studios"><Home /></CustomerLayout>}
+        </Route>
+        <Route path="/salons">
+          {() => <CustomerLayout activeTab="studios"><Salons /></CustomerLayout>}
+        </Route>
+        <Route path="/shop">
+          {() => <CustomerLayout activeTab="browse-shop"><Shop /></CustomerLayout>}
+        </Route>
         <Route path="/join" component={Join} />
         <Route path="/join/customer" component={JoinCustomer} />
         <Route path="/join/business" component={BusinessOnboarding} />
@@ -130,8 +138,12 @@ function Router() {
         <Route path="/customer/deposits" component={DepositHistory} />
         <Route path="/customer/saved-cards" component={SavedCards} />
         <Route path="/customer/beauty-profile" component={MyBeautyProfile} />
-        <Route path="/offers" component={CustomerOffers} />
-        <Route path="/all-offers" component={AllOffersPage} />
+        <Route path="/offers">
+          {() => <CustomerLayout activeTab="offers"><CustomerOffers /></CustomerLayout>}
+        </Route>
+        <Route path="/all-offers">
+          {() => <CustomerLayout activeTab="offers"><AllOffersPage /></CustomerLayout>}
+        </Route>
         <Route path="/calendar">
           {() => <CalendarManagement />}
         </Route>
@@ -167,27 +179,43 @@ function Router() {
         <Route path="/products/:productId">
           {(params) => <ProductDetails key={params.productId} />}
         </Route>
-        <Route path="/cart" component={ShoppingCart} />
-        <Route path="/checkout" component={Checkout} />
+        <Route path="/cart">
+          {() => <CustomerLayout activeTab="cart"><ShoppingCart /></CustomerLayout>}
+        </Route>
+        <Route path="/checkout">
+          {() => <CustomerLayout activeTab="cart"><Checkout /></CustomerLayout>}
+        </Route>
         <Route path="/orders/confirmation/:orderId">
           {(params) => <OrderConfirmation key={params.orderId} />}
         </Route>
         <Route path="/orders/:orderId">
           {(params) => <OrderDetails key={params.orderId} />}
         </Route>
-        <Route path="/orders" component={OrderHistory} />
-        <Route path="/wishlist" component={Wishlist} />
+        <Route path="/orders">
+          {() => <CustomerLayout activeTab="orders"><OrderHistory /></CustomerLayout>}
+        </Route>
+        <Route path="/wishlist">
+          {() => <CustomerLayout activeTab="wishlist"><Wishlist /></CustomerLayout>}
+        </Route>
         
-        <Route path="/salon/:salonId/book" component={SalonBookingPage} />
+        <Route path="/salon/:salonId/book">
+          {(params) => <CustomerLayout activeTab="studios"><SalonBookingPage key={params.salonId} /></CustomerLayout>}
+        </Route>
         <Route path="/booking/confirmation/:bookingId">
-          {(params) => <BookingConfirmation key={params.bookingId} />}
+          {(params) => <CustomerLayout activeTab="upcoming"><BookingConfirmation key={params.bookingId} /></CustomerLayout>}
         </Route>
-        <Route path="/salon/:salonId/gift-cards" component={GiftCardsPage} />
+        <Route path="/salon/:salonId/gift-cards">
+          {(params) => <CustomerLayout activeTab="studios"><GiftCardsPage key={params.salonId} /></CustomerLayout>}
+        </Route>
         <Route path="/salon/:salonId">
-          {(params) => <SalonProfile salonId={params.salonId!} />}
+          {(params) => <CustomerLayout activeTab="studios"><SalonProfile salonId={params.salonId!} /></CustomerLayout>}
         </Route>
-        <Route path="/services" component={ServicesSelection} />
-        <Route path="/booking" component={BookingPage} />
+        <Route path="/services">
+          {() => <CustomerLayout activeTab="studios"><ServicesSelection /></CustomerLayout>}
+        </Route>
+        <Route path="/booking">
+          {() => <CustomerLayout activeTab="upcoming"><BookingPage /></CustomerLayout>}
+        </Route>
         <Route path="/email-verified" component={EmailVerified} />
         <Route path="/email-verification-expired" component={EmailVerificationExpired} />
         <Route path="/reset-password" component={ResetPassword} />
@@ -197,9 +225,15 @@ function Router() {
         <Route path="/premium/ai-look" component={AILookAdvisor} />
         
         {/* Event Management Routes */}
-        <Route path="/events" component={EventsListing} />
-        <Route path="/events/:eventId" component={EventDetails} />
-        <Route path="/events/:eventId/register" component={EventRegistration} />
+        <Route path="/events">
+          {() => <CustomerLayout activeTab="events"><EventsListing /></CustomerLayout>}
+        </Route>
+        <Route path="/events/:eventId">
+          {(params) => <CustomerLayout activeTab="events"><EventDetails key={params.eventId} /></CustomerLayout>}
+        </Route>
+        <Route path="/events/:eventId/register">
+          {(params) => <CustomerLayout activeTab="events"><EventRegistration key={params.eventId} /></CustomerLayout>}
+        </Route>
         <Route path="/events/:eventId/review" component={EventReviewPage} />
         <Route path="/events/registration/:registrationId/confirmation" component={RegistrationConfirmation} />
         <Route path="/registrations/:bookingId/cancel" component={CancelRegistration} />

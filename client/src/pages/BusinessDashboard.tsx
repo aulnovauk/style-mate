@@ -1,10 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { BusinessIconSidebar, type SidebarSection } from "@/components/business-dashboard/BusinessIconSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -26,6 +31,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { 
@@ -53,6 +59,15 @@ import {
   Bell,
   Star,
   Gift,
+  CalendarDays,
+  Receipt,
+  Tag,
+  SmilePlus,
+  ShoppingBag,
+  UserSquare,
+  Ticket,
+  BarChart3,
+  Megaphone,
   Zap,
   Crown,
   UserCircle,
@@ -61,7 +76,6 @@ import {
   Plus,
   Check,
   Trash2,
-  CalendarDays,
   FileEdit,
   History,
   UserCog,
@@ -79,7 +93,9 @@ import {
   CalendarOff,
   UserPlus,
   UserMinus,
-  FileSpreadsheet
+  FileSpreadsheet,
+  PanelLeft,
+  PanelLeftClose
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSalonPermissions } from "@/hooks/useSalonPermissions";
@@ -241,7 +257,7 @@ import MediaStep from "@/components/business-setup/MediaStep";
 import ReviewPublishStep from "@/components/business-setup/ReviewPublishStep";
 
 export default function BusinessDashboard() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
@@ -257,7 +273,132 @@ export default function BusinessDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [salonToDelete, setSalonToDelete] = useState<Salon | null>(null);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<string | null>(null);
+  const [mobileCompactMode, setMobileCompactMode] = useState(false);
   const isMobile = useIsMobile();
+
+  // Icon sidebar sections for Fresha-style navigation - must be before early returns
+  const iconSidebarSections: SidebarSection[] = useMemo(() => [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: Home,
+      singleItem: true,
+      items: [{ id: "overview", label: "Dashboard" }],
+    },
+    {
+      id: "calendar",
+      label: "Calendar",
+      icon: CalendarDays,
+      singleItem: true,
+      items: [{ id: "calendar", label: "Booking Calendar" }],
+    },
+    {
+      id: "services",
+      label: "Services",
+      icon: Tag,
+      items: [
+        { id: "services", label: "Services & Pricing", icon: Scissors },
+        { id: "packages", label: "Packages & Combos", icon: Gift },
+        { id: "memberships", label: "Membership Plans", icon: Crown },
+      ],
+    },
+    {
+      id: "clients",
+      label: "Clients",
+      icon: SmilePlus,
+      items: [
+        { id: "client-profiles", label: "Client Profiles", icon: UserCog },
+        { id: "customer-import", label: "Import Customers", icon: Upload },
+      ],
+    },
+    {
+      id: "shop",
+      label: "Shop",
+      icon: ShoppingBag,
+      items: [
+        { id: "beauty-catalog", label: "Product Catalog", icon: Sparkles },
+        { id: "inventory", label: "Inventory", icon: Package },
+      ],
+    },
+    {
+      id: "business-setup",
+      label: "Business Setup",
+      icon: Building,
+      items: [
+        { id: "business-info", label: "Business Info", icon: Building },
+        { id: "location-contact", label: "Location & Contact", icon: MapPin },
+        { id: "services", label: "Services & Pricing", icon: Scissors },
+        { id: "staff", label: "Staff Management", icon: Users },
+        { id: "resources", label: "Resources & Equipment", icon: Settings, isOptional: true },
+        { id: "booking-settings", label: "Booking Settings", icon: Cog },
+        { id: "payment-setup", label: "Payment Setup", icon: CreditCard, isOptional: true },
+        { id: "media", label: "Media Gallery", icon: Camera },
+        { id: "publish", label: "Publish Business", icon: CheckCircle },
+      ],
+    },
+    {
+      id: "payroll",
+      label: "Payroll",
+      icon: Banknote,
+      items: [
+        { id: "payroll-overview", label: "Payroll Overview", icon: Wallet },
+        { id: "salary-management", label: "Salary Management", icon: Banknote },
+        { id: "leave-management", label: "Leave Management", icon: CalendarOff },
+        { id: "payroll-runs", label: "Payroll Runs", icon: FileSpreadsheet },
+        { id: "staff-onboarding", label: "Staff Onboarding", icon: UserPlus },
+        { id: "staff-exit", label: "Exit & Settlement", icon: UserMinus },
+        { id: "commissions", label: "Commission Summary", icon: CreditCard },
+      ],
+    },
+    {
+      id: "events",
+      label: "Events",
+      icon: Ticket,
+      items: [
+        { id: "events-dashboard", label: "Event Dashboard", icon: BarChart },
+        { id: "create-event", label: "Create Event", icon: Plus },
+        { id: "draft-events", label: "Draft Events", icon: FileEdit },
+        { id: "past-events", label: "Past Events", icon: History },
+      ],
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: BarChart3,
+      items: [
+        { id: "analytics", label: "Analytics", icon: TrendingUp },
+        { id: "ml-analytics", label: "ML Predictions", icon: Brain },
+        { id: "financials", label: "Financial Reports", icon: CreditCard },
+      ],
+    },
+    {
+      id: "marketing",
+      label: "Marketing",
+      icon: Megaphone,
+      items: [
+        { id: "offers", label: "Offers & Promotions", icon: Gift },
+        { id: "campaigns", label: "Campaigns", icon: Send },
+        { id: "communications", label: "Customer Comms", icon: MessageSquare },
+        { id: "chat-inbox", label: "Chat Inbox", icon: MessageCircle, badge: chatUnreadCount > 0 ? chatUnreadCount : undefined },
+      ],
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: Settings,
+      items: [
+        { id: "shop-admins", label: "Shop Admins", icon: Shield },
+        { id: "notifications-settings", label: "Notifications", icon: Bell },
+        { id: "security-settings", label: "Security", icon: Shield },
+        { id: "subscription-settings", label: "Subscription", icon: Crown },
+        { id: "integrations-settings", label: "Integrations", icon: Cog },
+        { id: "account-settings", label: "Account", icon: UserCircle },
+      ],
+    },
+  ], [chatUnreadCount]);
   
   // Subscription feature access
   const featureAccess = useFeatureAccess(salonId);
@@ -761,12 +902,14 @@ export default function BusinessDashboard() {
       'business-info': 'business', 'location-contact': 'business', 'services': 'business', 'packages': 'business',
       'memberships': 'business', 'staff': 'business', 'resources': 'business', 'booking-settings': 'business', 'payment-setup': 'business',
       'media': 'business', 'publish': 'business',
-      'shop-admins': 'admin',
+      'shop-admins': 'settings',
       'financials': 'financials',
       'payroll-overview': 'staff-payroll', 'salary-management': 'staff-payroll', 'leave-management': 'staff-payroll',
       'payroll-runs': 'staff-payroll', 'staff-onboarding': 'staff-payroll', 'staff-exit': 'staff-payroll', 'commissions': 'staff-payroll',
       'analytics': 'analytics', 'ml-analytics': 'analytics',
-      'chat-inbox': 'communications', 'communications': 'communications', 'customer-import': 'communications', 'campaigns': 'communications'
+      'chat-inbox': 'communications', 'communications': 'communications', 'customer-import': 'communications', 'campaigns': 'communications',
+      'notifications-settings': 'settings', 'security-settings': 'settings', 'subscription-settings': 'settings', 
+      'integrations-settings': 'settings', 'account-settings': 'settings'
     };
     const sectionId = tabToSectionMap[tabId];
     if (sectionId && !expandedSections.includes(sectionId)) {
@@ -1111,100 +1254,191 @@ export default function BusinessDashboard() {
     );
   };
 
-  // Mobile navigation component
+  // Mobile navigation component - Modern Fresha-style design with compact/expanded toggle
   const MobileNavigation = () => (
-    <Sheet>
+    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu className="h-4 w-4" />
+          <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle Navigation</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0">
+      <SheetContent side="left" className={`p-0 bg-gradient-to-b from-slate-900 to-slate-800 transition-all duration-300 ${mobileCompactMode ? 'w-20' : 'w-80'}`}>
         <div className="flex h-full flex-col">
-          <div className="border-b border-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Building className="h-4 w-4" />
+          {/* Header */}
+          <div className="p-4 border-b border-slate-700">
+            <div className="flex items-center gap-3 justify-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 text-white shadow-lg">
+                <Sparkles className="h-5 w-5" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Business Dashboard</span>
-                <span className="text-xs text-muted-foreground">
-                  {salonData?.name || 'Professional Management'}
-                </span>
-              </div>
+              {!mobileCompactMode && (
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-white">Stylemate</span>
+                  <span className="text-xs text-slate-400">
+                    {salonData?.name || 'Business Dashboard'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-          <ScrollArea className="flex-1">
-            <div className="p-4">
-              <Accordion type="multiple" defaultValue={["overview", "business"]} className="w-full">
-                {navigationSections.map((section) => (
-                  section.items.length === 1 ? (
-                    // Single item sections
-                    <div key={section.id} className="mb-2">
-                      <Button
-                        variant={activeTab === section.items[0].id ? "default" : "ghost"}
-                        onClick={() => setActiveTab(section.items[0].id)}
-                        className="w-full justify-start"
-                        data-testid={`mobile-nav-${section.items[0].id}`}
-                      >
-                        <section.icon className="h-4 w-4 mr-3" />
+          
+          {/* Navigation */}
+          <ScrollArea className="flex-1 p-2">
+            {mobileCompactMode ? (
+              /* Compact Mode - Icon Grid */
+              <div className="flex flex-col items-center gap-2">
+                {iconSidebarSections.map((section) => (
+                  <TooltipProvider key={section.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            if (section.items.length === 1) {
+                              handleNavigation(section.items[0].id);
+                              setMobileMenuOpen(false);
+                            } else {
+                              // For multi-item sections, expand to full mode and open submenu
+                              setMobileCompactMode(false);
+                              setMobileSubmenuOpen(section.id);
+                            }
+                          }}
+                          className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all ${
+                            section.items.some(item => item.id === activeTab)
+                              ? 'bg-gradient-to-br from-violet-500 to-purple-500 text-white shadow-lg'
+                              : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white'
+                          }`}
+                        >
+                          <section.icon className="h-5 w-5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700">
                         {section.label}
-                      </Button>
-                    </div>
-                  ) : (
-                    // Multi-item sections
-                    <AccordionItem key={section.id} value={section.id} className="border-none">
-                      <AccordionTrigger className="px-3 py-2 hover:no-underline hover:bg-accent rounded-md">
-                        <div className="flex items-center gap-3">
-                          <section.icon className="h-4 w-4" />
-                          <span className="text-sm font-medium">{section.label}</span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-2">
-                        <div className="space-y-1 ml-6">
-                          {section.items.map((item) => (
-                            <Button
-                              key={item.id}
-                              variant={activeTab === item.id ? "default" : "ghost"}
-                              onClick={() => setActiveTab(item.id)}
-                              className="w-full justify-start h-8"
-                              data-testid={`mobile-nav-${item.id}`}
-                            >
-                              <item.icon className="h-4 w-4 mr-3" />
-                              <span className="flex items-center gap-2 text-sm">
-                                {item.label}
-                                <div className="ml-auto flex items-center gap-1">
-                                  {item.isComplete && (
-                                    <span title="Complete"><CheckCircle className="h-3 w-3 text-green-500" /></span>
-                                  )}
-                                  {item.isSetup && !item.isComplete && (
-                                    <div className="h-2 w-2 rounded-full bg-orange-500" title="Setup required" />
-                                  )}
-                                  {item.isOptional && (
-                                    <span className="text-xs text-blue-500" title="Optional">(Optional)</span>
-                                  )}
-                                  {!item.isSetup && !item.isOptional && item.isComplete === false && (
-                                    <span className="text-xs text-red-500">*</span>
-                                  )}
-                                  {'progress' in item && item.progress !== undefined && item.progress < 100 && (
-                                    <span className="text-xs text-amber-500">({Math.round(item.progress)}%)</span>
-                                  )}
-                                  {'progress' in item && item.progress === 100 && (
-                                    <CheckCircle className="h-3 w-3 text-green-500" />
-                                  )}
-                                </div>
-                              </span>
-                            </Button>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
-              </Accordion>
-            </div>
+              </div>
+            ) : (
+              /* Expanded Mode - Full Menu */
+              <div className="space-y-2 p-2">
+                {iconSidebarSections.map((section) => (
+                  <div key={section.id}>
+                    <button
+                      onClick={() => {
+                        if (section.items.length === 1) {
+                          handleNavigation(section.items[0].id);
+                          setMobileMenuOpen(false);
+                        } else {
+                          setMobileSubmenuOpen(mobileSubmenuOpen === section.id ? null : section.id);
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                        section.items.some(item => item.id === activeTab)
+                          ? 'bg-gradient-to-r from-violet-500/20 to-purple-500/20 border border-violet-500/30'
+                          : 'hover:bg-slate-700/50'
+                      }`}
+                    >
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                        section.items.some(item => item.id === activeTab)
+                          ? 'bg-gradient-to-br from-violet-500 to-purple-500 text-white shadow-md'
+                          : 'bg-slate-700 text-slate-300'
+                      }`}>
+                        <section.icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className={`text-sm font-medium ${
+                          section.items.some(item => item.id === activeTab) ? 'text-white' : 'text-slate-300'
+                        }`}>
+                          {section.label}
+                        </span>
+                      </div>
+                      {section.items.length > 1 && (
+                        <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform ${
+                          mobileSubmenuOpen === section.id ? 'rotate-90' : ''
+                        }`} />
+                      )}
+                    </button>
+                    
+                    {mobileSubmenuOpen === section.id && section.items.length > 1 && (
+                      <div className="mt-2 ml-4 space-y-1 border-l-2 border-slate-700 pl-4">
+                        {section.items.map((item) => {
+                          const ItemIcon = item.icon;
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => {
+                                handleNavigation(item.id);
+                                setMobileMenuOpen(false);
+                              }}
+                              className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all ${
+                                activeTab === item.id
+                                  ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md'
+                                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                              }`}
+                            >
+                              {ItemIcon && <ItemIcon className="h-4 w-4" />}
+                              <span className="text-sm">{item.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </ScrollArea>
+          
+          {/* Footer with Toggle and User Info */}
+          <div className="p-3 border-t border-slate-700 space-y-2">
+            {/* Expand/Collapse Toggle */}
+            <button
+              onClick={() => setMobileCompactMode(!mobileCompactMode)}
+              className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-all"
+            >
+              {mobileCompactMode ? (
+                <>
+                  <PanelLeft className="h-4 w-4" />
+                  <span className="sr-only">Expand Menu</span>
+                </>
+              ) : (
+                <>
+                  <PanelLeftClose className="h-4 w-4" />
+                  <span className="text-sm">Collapse Menu</span>
+                </>
+              )}
+            </button>
+            
+            {/* User Info */}
+            <div className={`flex items-center gap-3 p-3 rounded-xl bg-slate-700/50 ${mobileCompactMode ? 'justify-center' : ''}`}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500 text-white flex-shrink-0">
+                <UserCircle className="h-5 w-5" />
+              </div>
+              {!mobileCompactMode && (
+                <>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">
+                      {user?.firstName || 'Business Owner'}
+                    </p>
+                    <p className="text-xs text-slate-400 truncate">
+                      {user?.email || ''}
+                    </p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-600"
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -1284,25 +1518,6 @@ export default function BusinessDashboard() {
             </Card>
           )}
           
-          {/* Setup Complete Message */}
-          {setupStatus && setupStatus.isSetupComplete && (
-            <Card className="border-green-200 bg-green-50 dark:bg-green-950">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                  <div>
-                    <p className="font-medium text-green-900 dark:text-green-100">
-                      🎉 Setup Complete!
-                    </p>
-                    <p className="text-sm text-green-700 dark:text-green-300">
-                      Your salon profile is ready to go live
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* AI Look Advisor - Premium Feature */}
           <Card className="border-purple-200 bg-gradient-to-br from-purple-50 via-pink-50 to-violet-50 shadow-lg">
             <CardHeader>
@@ -2217,6 +2432,260 @@ export default function BusinessDashboard() {
       );
     }
 
+    // Handle notifications settings tab
+    if (activeTab === "notifications-settings") {
+      return (
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
+              <Bell className="h-5 w-5 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Notification Settings</h2>
+              <p className="text-sm text-muted-foreground">Manage how you receive alerts and updates</p>
+            </div>
+          </div>
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Email Notifications</p>
+                  <p className="text-sm text-muted-foreground">Receive booking confirmations via email</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">SMS Notifications</p>
+                  <p className="text-sm text-muted-foreground">Get text alerts for new bookings</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Push Notifications</p>
+                  <p className="text-sm text-muted-foreground">Browser push notifications for updates</p>
+                </div>
+                <Switch />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Daily Summary Email</p>
+                  <p className="text-sm text-muted-foreground">Receive a daily summary of bookings</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // Handle security settings tab
+    if (activeTab === "security-settings") {
+      return (
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
+              <Shield className="h-5 w-5 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Security Settings</h2>
+              <p className="text-sm text-muted-foreground">Protect your account and data</p>
+            </div>
+          </div>
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Two-Factor Authentication</p>
+                  <p className="text-sm text-muted-foreground">Add extra security to your account</p>
+                </div>
+                <Button variant="outline" size="sm">Enable</Button>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Change Password</p>
+                  <p className="text-sm text-muted-foreground">Update your account password</p>
+                </div>
+                <Button variant="outline" size="sm">Change</Button>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Active Sessions</p>
+                  <p className="text-sm text-muted-foreground">Manage devices logged into your account</p>
+                </div>
+                <Button variant="outline" size="sm">View</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // Handle subscription settings tab
+    if (activeTab === "subscription-settings") {
+      return (
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
+              <Crown className="h-5 w-5 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Subscription & Billing</h2>
+              <p className="text-sm text-muted-foreground">Manage your plan and payment methods</p>
+            </div>
+          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-medium text-lg">Current Plan</p>
+                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white mt-1">Professional</Badge>
+                </div>
+                <Button className="bg-gradient-to-r from-violet-500 to-purple-500">Upgrade Plan</Button>
+              </div>
+              <Separator className="my-4" />
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Next billing date</span>
+                  <span className="font-medium">January 1, 2026</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Payment method</span>
+                  <span className="font-medium">•••• 4242</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // Handle integrations settings tab
+    if (activeTab === "integrations-settings") {
+      return (
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
+              <Cog className="h-5 w-5 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Integrations</h2>
+              <p className="text-sm text-muted-foreground">Connect your favorite apps and services</p>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-blue-100 flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Google Calendar</p>
+                    <p className="text-xs text-muted-foreground">Sync appointments</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">Connect</Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-green-100 flex items-center justify-center">
+                    <MessageSquare className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">WhatsApp</p>
+                    <p className="text-xs text-muted-foreground">Send reminders</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">Connect</Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-purple-100 flex items-center justify-center">
+                    <Wallet className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Razorpay</p>
+                    <p className="text-xs text-muted-foreground">Accept payments</p>
+                  </div>
+                </div>
+                <Badge className="bg-green-100 text-green-700">Connected</Badge>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-pink-100 flex items-center justify-center">
+                    <Camera className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Instagram</p>
+                    <p className="text-xs text-muted-foreground">Share your work</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">Connect</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    // Handle account settings tab
+    if (activeTab === "account-settings") {
+      return (
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
+              <UserCircle className="h-5 w-5 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Account Settings</h2>
+              <p className="text-sm text-muted-foreground">Manage your personal account information</p>
+            </div>
+          </div>
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="account-email">Email Address</Label>
+                  <Input id="account-email" defaultValue={user?.email || ''} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="account-phone">Phone Number</Label>
+                  <Input id="account-phone" defaultValue={user?.phone || ''} />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="account-firstname">First Name</Label>
+                  <Input id="account-firstname" defaultValue={user?.firstName || ''} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="account-lastname">Last Name</Label>
+                  <Input id="account-lastname" defaultValue={user?.lastName || ''} />
+                </div>
+              </div>
+              <div className="pt-4">
+                <Button className="bg-gradient-to-r from-violet-500 to-purple-500">Save Changes</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     // Handle event management tabs - render in sidebar layout
     if (activeTab === "events-dashboard") {
       return <EventDashboard />;
@@ -2248,46 +2717,50 @@ export default function BusinessDashboard() {
   };
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="h-screen bg-background flex w-full overflow-hidden">
-        {/* Desktop Sidebar */}
-        <SidebarNavigation />
-        
-        {/* Main Content */}
-        <SidebarInset className="flex-1 flex flex-col">
-          {/* Premium Header with User Name */}
-          <header className="flex h-20 items-center justify-between gap-4 border-b bg-gradient-to-r from-white via-violet-50/30 to-pink-50/30 px-4 md:px-8 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <SidebarTrigger className="md:hidden" />
-                <MobileNavigation />
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500 text-white shadow-md">
-                  <Building className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-                      {user?.firstName || user?.email || 'Business Owner'}
-                    </h1>
-                    <div className="h-4 w-4 rounded-full bg-green-500 ring-2 ring-green-100" title="Online" />
-                  </div>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    <Building className="h-3.5 w-3.5 text-violet-500" />
+    <div className="h-screen bg-background flex w-full overflow-hidden">
+      {/* Fresha-Style Icon Sidebar - Desktop */}
+      <div className="hidden md:block">
+        <BusinessIconSidebar
+          sections={iconSidebarSections}
+          activeTab={activeTab}
+          onNavigate={handleNavigation}
+          salonName={salonData?.name}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          user={user}
+          onLogout={logout}
+        />
+      </div>
+      
+      {/* Main Content */}
+      <div 
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+        }`}
+      >
+        {/* Premium Header with User Name */}
+        <header className="flex h-16 items-center justify-between gap-4 border-b bg-white px-4 md:px-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden">
+              <MobileNavigation />
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold text-gray-900">
                     {salonData?.name || 'Your Business'}
-                    {salonData?.city && (
-                      <>
-                        <span className="text-slate-300">•</span>
-                        <MapPin className="h-3.5 w-3.5 text-pink-500" />
-                        {salonData.city}
-                      </>
-                    )}
-                  </p>
+                  </h1>
+                  <div className="h-2 w-2 rounded-full bg-green-500" title="Online" />
                 </div>
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3 text-violet-500" />
+                  {salonData?.city || 'Location'}
+                </p>
               </div>
             </div>
+          </div>
 
             {/* Salon Selector Dropdown */}
             {Array.isArray(salons) && salons.length > 0 && (
@@ -2405,47 +2878,48 @@ export default function BusinessDashboard() {
           )}
 
           {/* Content */}
-          <main className="flex-1 overflow-auto">
-            {renderTabContent()}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="min-h-full">
+              {renderTabContent()}
+            </div>
           </main>
-        </SidebarInset>
-      </div>
+        </div>
 
-      {/* Delete Salon Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Salon</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{salonToDelete?.name}"? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-3 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDeleteDialogOpen(false);
-                setSalonToDelete(null);
-              }}
-              data-testid="button-cancel-delete"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (salonToDelete) {
-                  deleteSalonMutation.mutate(salonToDelete.id);
-                }
-              }}
-              disabled={deleteSalonMutation.isPending}
-              data-testid="button-confirm-delete"
-            >
-              {deleteSalonMutation.isPending ? "Deleting..." : "Delete Salon"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </SidebarProvider>
+        {/* Delete Salon Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Salon</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{salonToDelete?.name}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setSalonToDelete(null);
+                }}
+                data-testid="button-cancel-delete"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (salonToDelete) {
+                    deleteSalonMutation.mutate(salonToDelete.id);
+                  }
+                }}
+                disabled={deleteSalonMutation.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteSalonMutation.isPending ? "Deleting..." : "Delete Salon"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
   );
 }

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar as CalendarIcon, Clock, User, Scissors, MapPin, Loader2, AlertCircle } from "lucide-react";
@@ -83,14 +82,14 @@ export function RescheduleModal({ isOpen, onClose, appointment }: RescheduleModa
     setRescheduling(true);
     try {
       const response = await fetch(
-        `/api/salons/${appointment.salonId}/bookings/${appointment.id}/reschedule`,
+        `/api/customer/appointments/${appointment.id}/reschedule`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            newDate: format(selectedDate, "yyyy-MM-dd"),
-            newTime: selectedTime,
+            bookingDate: format(selectedDate, "yyyy-MM-dd"),
+            bookingTime: selectedTime,
           }),
         }
       );
@@ -98,8 +97,10 @@ export function RescheduleModal({ isOpen, onClose, appointment }: RescheduleModa
       if (response.ok) {
         toast({
           title: "Appointment rescheduled",
-          description: `Your ${appointment.serviceName} appointment has been moved to ${format(selectedDate, "EEEE, MMMM d, yyyy")} at ${selectedTime}.`,
+          description: `Your ${appointment.serviceName} appointment has been moved to ${format(selectedDate, "EEEE, MMMM d, yyyy")} at ${formatTime12Hour(selectedTime)}.`,
         });
+        queryClient.invalidateQueries({ queryKey: ["/api/customer/appointments?status=upcoming"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/customer/appointments?status=history"] });
         queryClient.invalidateQueries({ queryKey: ["/api/customer/appointments"] });
         onClose();
       } else {
@@ -134,18 +135,20 @@ export function RescheduleModal({ isOpen, onClose, appointment }: RescheduleModa
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  const availableSlotsFiltered = availableSlots.filter((slot) => slot.available);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-md sm:max-w-lg p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="flex items-center gap-2 text-lg">
             <CalendarIcon className="h-5 w-5 text-primary" />
             Reschedule Appointment
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <Card className="bg-muted/50">
+        <div className="px-6 overflow-y-auto max-h-[60vh]">
+          <Card className="bg-muted/50 mb-4">
             <CardContent className="p-4 space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <Scissors className="h-4 w-4 text-muted-foreground" />
@@ -169,60 +172,68 @@ export function RescheduleModal({ isOpen, onClose, appointment }: RescheduleModa
             </CardContent>
           </Card>
 
-          <div>
+          <div className="mb-4">
             <h3 className="text-sm font-medium mb-2">Select New Date</h3>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              disabled={disabledDays}
-              className="rounded-md border"
-              fromDate={new Date()}
-              toDate={addDays(new Date(), 60)}
-            />
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={disabledDays}
+                className="rounded-md border"
+                fromDate={new Date()}
+                toDate={addDays(new Date(), 60)}
+              />
+            </div>
           </div>
 
           {selectedDate && (
-            <div>
-              <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Clock className="h-4 w-4" />
+            <div className="mb-4">
+              <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />
                 Available Times for {format(selectedDate, "EEEE, MMM d")}
               </h3>
               
               {loadingSlots ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading available times...</span>
                 </div>
-              ) : availableSlots.length > 0 ? (
-                <ScrollArea className="h-[120px]">
-                  <div className="grid grid-cols-4 gap-2">
-                    {availableSlots
-                      .filter((slot) => slot.available)
-                      .map((slot) => (
-                        <Button
-                          key={slot.time}
-                          variant={selectedTime === slot.time ? "default" : "outline"}
-                          size="sm"
-                          className="text-xs"
-                          onClick={() => setSelectedTime(slot.time)}
-                        >
-                          {formatTime12Hour(slot.time)}
-                        </Button>
-                      ))}
-                  </div>
-                </ScrollArea>
+              ) : availableSlotsFiltered.length > 0 ? (
+                <div className="grid grid-cols-4 gap-2">
+                  {availableSlotsFiltered.map((slot) => (
+                    <Button
+                      key={slot.time}
+                      variant={selectedTime === slot.time ? "default" : "outline"}
+                      size="sm"
+                      className={`text-xs ${
+                        selectedTime === slot.time 
+                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2" 
+                          : "hover:bg-primary/10 hover:border-primary"
+                      }`}
+                      onClick={() => setSelectedTime(slot.time)}
+                    >
+                      {formatTime12Hour(slot.time)}
+                    </Button>
+                  ))}
+                </div>
               ) : (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-                  <AlertCircle className="h-4 w-4" />
-                  No available slots on this date. Please select another date.
+                <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>No available slots on this date. Please select another date.</span>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        <div className="flex gap-2 pt-4 border-t">
-          <Button variant="outline" className="flex-1" onClick={onClose} disabled={rescheduling}>
+        <div className="flex gap-3 p-6 pt-4 border-t bg-background">
+          <Button 
+            variant="outline" 
+            className="flex-1" 
+            onClick={onClose} 
+            disabled={rescheduling}
+          >
             Cancel
           </Button>
           <Button

@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Sparkles, X, Send, Loader2, ChevronDown, Scissors, Heart, MapPin, TrendingUp, Palette, User, LogIn, Mic, MicOff, Star, Clock, ExternalLink } from 'lucide-react';
+import { Sparkles, X, Send, Loader2, ChevronDown, Scissors, Heart, MapPin, TrendingUp, Palette, User, LogIn, Mic, MicOff, Star, Clock, ExternalLink, GripVertical, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
@@ -148,18 +149,109 @@ declare global {
 
 export function AIBeautyConsultant() {
   const { isAuthenticated, login } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isCompact, setIsCompact] = useState(() => {
+    const saved = localStorage.getItem('ai-consultant-compact');
+    return saved === 'true';
+  });
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [chips] = useState<QuickActionChip[]>(DEFAULT_CHIPS);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Draggable state
+  const [position, setPosition] = useState(() => {
+    const saved = localStorage.getItem('ai-consultant-position');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { x: null, y: null };
+      }
+    }
+    return { x: null, y: null };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<HTMLDivElement>(null);
+  const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
   
   const [isListening, setIsListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const baseTextRef = useRef<string>('');
+  
+  // Hide on business dashboard and admin routes - AI Consultant is for customers only
+  const isBusinessRoute = location.startsWith('/business') || location.startsWith('/admin');
+  
+  // Save compact mode preference
+  useEffect(() => {
+    localStorage.setItem('ai-consultant-compact', String(isCompact));
+  }, [isCompact]);
+  
+  // Save position preference
+  useEffect(() => {
+    if (position.x !== null && position.y !== null) {
+      localStorage.setItem('ai-consultant-position', JSON.stringify(position));
+    }
+  }, [position]);
+  
+  // Drag handlers
+  const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const rect = dragRef.current?.getBoundingClientRect();
+    dragStartRef.current = {
+      x: clientX,
+      y: clientY,
+      posX: rect?.left || 0,
+      posY: rect?.top || 0
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (!isDragging) return;
+    
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      
+      const deltaX = clientX - dragStartRef.current.x;
+      const deltaY = clientY - dragStartRef.current.y;
+      
+      let newX = dragStartRef.current.posX + deltaX;
+      let newY = dragStartRef.current.posY + deltaY;
+      
+      // Keep within bounds
+      const maxX = window.innerWidth - (isCompact ? 48 : 180);
+      const maxY = window.innerHeight - (isCompact ? 48 : 48);
+      newX = Math.max(0, Math.min(newX, maxX));
+      newY = Math.max(0, Math.min(newY, maxY));
+      
+      setPosition({ x: newX, y: newY });
+    };
+    
+    const handleEnd = () => {
+      setIsDragging(false);
+    };
+    
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchmove', handleMove);
+    document.addEventListener('touchend', handleEnd);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleEnd);
+    };
+  }, [isDragging, isCompact]);
 
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -357,17 +449,105 @@ export function AIBeautyConsultant() {
 
   const isLoading = chatMutation.isPending || quickQueryMutation.isPending;
 
+  // Hide on business dashboard and admin routes - AI Consultant is for customers only
+  if (isBusinessRoute) {
+    return null;
+  }
+
+  // Calculate position style
+  const getPositionStyle = () => {
+    if (position.x !== null && position.y !== null) {
+      return {
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        right: 'auto',
+        bottom: 'auto'
+      };
+    }
+    return {
+      right: '2rem',
+      bottom: '6rem'
+    };
+  };
+
   if (!isOpen) {
     return (
-      <div className="fixed bottom-24 right-8 z-[9999]">
-        <Button
-          onClick={handleToggle}
-          className="flex items-center gap-2 h-12 px-5 rounded-full shadow-xl bg-gradient-to-br from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 transition-all duration-300 hover:scale-105 text-white font-medium"
-          title="AI Beauty Consultant"
-        >
-          <Sparkles className="h-5 w-5" />
-          <span>AI Consultant</span>
-        </Button>
+      <div 
+        ref={dragRef}
+        className={cn(
+          "fixed z-[9999] select-none",
+          isDragging && "cursor-grabbing"
+        )}
+        style={getPositionStyle()}
+      >
+        {isCompact ? (
+          // Compact mode - just icon with tooltip
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="relative group">
+                  {/* Drag handle - visible on hover */}
+                  <div
+                    onMouseDown={handleDragStart}
+                    onTouchStart={handleDragStart}
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-slate-700 rounded-full p-0.5"
+                  >
+                    <GripVertical className="h-3 w-3 text-white" />
+                  </div>
+                  <button
+                    onClick={handleToggle}
+                    className="flex items-center justify-center h-12 w-12 rounded-full shadow-lg bg-gradient-to-br from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 transition-all duration-300 hover:scale-110 text-white"
+                  >
+                    <Sparkles className="h-5 w-5" />
+                  </button>
+                  {/* Expand button */}
+                  <button
+                    onClick={() => setIsCompact(false)}
+                    className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-slate-700 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-600"
+                    title="Expand button"
+                  >
+                    <Maximize2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="bg-slate-800 text-white border-slate-700">
+                AI Consultant
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          // Expanded mode - full button with label
+          <div className="relative group">
+            {/* Drag handle - positioned to the left side */}
+            <div
+              onMouseDown={handleDragStart}
+              onTouchStart={handleDragStart}
+              className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-slate-700 rounded-lg p-1.5 flex items-center justify-center shadow-lg"
+              title="Drag to move"
+            >
+              <GripVertical className="h-4 w-4 text-white" />
+            </div>
+            <Button
+              onClick={handleToggle}
+              className="flex items-center gap-2 h-11 px-4 rounded-full shadow-lg bg-gradient-to-br from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 transition-all duration-300 hover:scale-105 text-white font-medium text-sm"
+              title="AI Beauty Consultant"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>AI Consultant</span>
+            </Button>
+            {/* Minimize button - positioned to the right side */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsCompact(true);
+              }}
+              className="absolute -right-8 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-slate-700 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-600 shadow-lg"
+              title="Make compact"
+            >
+              <Minimize2 className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
     );
   }

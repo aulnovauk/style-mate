@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
@@ -24,6 +23,7 @@ import {
   GripVertical
 } from "lucide-react";
 import { format, addDays, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO } from "date-fns";
+import { AppointmentQuickMenu } from "./AppointmentQuickMenu";
 
 interface Booking {
   id: string;
@@ -1292,84 +1292,133 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
           }
         }
       `}</style>
-      {/* Header Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-semibold flex items-center gap-2" data-testid="text-calendar-title">
-            <Calendar className="h-6 w-6" />
-            Booking Calendar
-          </h2>
-          
-          {/* Enhanced Accessibility Help */}
-          <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded hidden md:block">
-            💡 Tip: Use Tab to navigate, Enter to view details, Space to move appointments, Arrow keys to navigate timeline
-          </div>
-          
-          {/* Screen Reader Live Region for Drag Feedback */}
-          <div 
-            id="drag-feedback-region" 
-            aria-live="polite" 
-            aria-atomic="true" 
-            className="sr-only"
-          >
-            {timelineDragState.isDragging && timelineDragState.dragPreview && (
-              <span>
-                {timelineDragState.validDropZone 
-                  ? `Moving appointment to ${timelineDragState.dragPreview.time} with ${extendedStaff.find(s => s.id === timelineDragState.dragPreview?.staffId)?.name || 'unassigned'}. Drop zone is available.`
-                  : `Cannot move appointment to ${timelineDragState.dragPreview.time} with ${extendedStaff.find(s => s.id === timelineDragState.dragPreview?.staffId)?.name || 'unassigned'}. ${timelineDragState.conflicts.length > 0 ? `${timelineDragState.conflicts.length} conflict${timelineDragState.conflicts.length > 1 ? 's' : ''} detected.` : 'Invalid drop zone.'}`
-                }
-              </span>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goToPrevious} data-testid="button-previous">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToNext} data-testid="button-next">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToToday} data-testid="button-today">
-              Today
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40" data-testid="select-status-filter">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Bookings</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'day' | 'week' | 'month')}>
-            <TabsList>
-              <TabsTrigger value="day" data-testid="tab-day">Day</TabsTrigger>
-              <TabsTrigger value="week" data-testid="tab-week">Week</TabsTrigger>
-              <TabsTrigger value="month" data-testid="tab-month">Month</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+      {/* Screen Reader Live Region for Drag Feedback */}
+      <div 
+        id="drag-feedback-region" 
+        aria-live="polite" 
+        aria-atomic="true" 
+        className="sr-only"
+      >
+        {timelineDragState.isDragging && timelineDragState.dragPreview && (
+          <span>
+            {timelineDragState.validDropZone 
+              ? `Moving appointment to ${timelineDragState.dragPreview.time} with ${extendedStaff.find(s => s.id === timelineDragState.dragPreview?.staffId)?.name || 'unassigned'}. Drop zone is available.`
+              : `Cannot move appointment to ${timelineDragState.dragPreview.time} with ${extendedStaff.find(s => s.id === timelineDragState.dragPreview?.staffId)?.name || 'unassigned'}. ${timelineDragState.conflicts.length > 0 ? `${timelineDragState.conflicts.length} conflict${timelineDragState.conflicts.length > 1 ? 's' : ''} detected.` : 'Invalid drop zone.'}`
+            }
+          </span>
+        )}
       </div>
 
-      {/* Current Period Display */}
-      <div className="text-center">
-        <h3 className="text-lg font-medium" data-testid="text-current-period">
-          {viewMode === 'day'
-            ? format(currentDate, 'EEEE, MMMM d, yyyy')
-            : viewMode === 'month' 
-            ? format(currentDate, 'MMMM yyyy')
-            : `${format(rangeStart, 'MMM d')} - ${format(rangeEnd, 'MMM d, yyyy')}`
-          }
-        </h3>
-      </div>
+      {/* Redesigned Clean Header */}
+      <Card className="border-0 shadow-sm bg-gradient-to-r from-violet-50/50 to-fuchsia-50/50 dark:from-violet-950/20 dark:to-fuchsia-950/20">
+        <CardContent className="py-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Left: Title and Current Period */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100" data-testid="text-calendar-title">
+                    Booking Calendar
+                  </h2>
+                  <p className="text-sm text-muted-foreground" data-testid="text-current-period">
+                    {viewMode === 'day'
+                      ? format(currentDate, 'EEEE, MMMM d, yyyy')
+                      : viewMode === 'month' 
+                      ? format(currentDate, 'MMMM yyyy')
+                      : `${format(rangeStart, 'MMM d')} - ${format(rangeEnd, 'MMM d, yyyy')}`
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Center: Navigation Controls */}
+            <div className="flex items-center justify-center gap-2">
+              <div className="inline-flex items-center rounded-lg border bg-background p-1 shadow-sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={goToPrevious} 
+                  className="h-8 w-8 p-0 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                  data-testid="button-previous"
+                  title={viewMode === 'day' ? 'Previous Day' : viewMode === 'week' ? 'Previous Week' : 'Previous Month'}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={goToToday}
+                  className="h-8 px-3 text-sm font-medium hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                  data-testid="button-today"
+                >
+                  Today
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={goToNext}
+                  className="h-8 w-8 p-0 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                  data-testid="button-next"
+                  title={viewMode === 'day' ? 'Next Day' : viewMode === 'week' ? 'Next Week' : 'Next Month'}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* View Mode Toggle */}
+              <div className="inline-flex items-center rounded-lg border bg-background p-1 shadow-sm">
+                <Button
+                  variant={viewMode === 'day' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('day')}
+                  className={`h-8 px-3 text-sm ${viewMode === 'day' ? 'bg-violet-600 hover:bg-violet-700 text-white' : 'hover:bg-violet-100 dark:hover:bg-violet-900/30'}`}
+                  data-testid="tab-day"
+                >
+                  Day
+                </Button>
+                <Button
+                  variant={viewMode === 'week' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('week')}
+                  className={`h-8 px-3 text-sm ${viewMode === 'week' ? 'bg-violet-600 hover:bg-violet-700 text-white' : 'hover:bg-violet-100 dark:hover:bg-violet-900/30'}`}
+                  data-testid="tab-week"
+                >
+                  Week
+                </Button>
+                <Button
+                  variant={viewMode === 'month' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('month')}
+                  className={`h-8 px-3 text-sm ${viewMode === 'month' ? 'bg-violet-600 hover:bg-violet-700 text-white' : 'hover:bg-violet-100 dark:hover:bg-violet-900/30'}`}
+                  data-testid="tab-month"
+                >
+                  Month
+                </Button>
+              </div>
+            </div>
+
+            {/* Right: Filter */}
+            <div className="flex items-center gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px] h-9 bg-background" data-testid="select-status-filter">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Bookings</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Calendar Grid */}
       {viewMode === 'day' ? (
@@ -1602,7 +1651,7 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
                           aria-label={`${booking.customerName}'s appointment at ${booking.bookingTime} with ${staffMember.name} for ${bookingDuration} minutes. Status: ${statusLabels[displayStatus]}. ${isDraggable ? 'Draggable. Press Enter to view details, Space to move appointment, or drag to reschedule.' : 'Press Enter to view details.'}${hasConflicts ? ' Warning: scheduling conflict detected with other appointments.' : ''}`}
                           aria-describedby={hasConflicts ? `conflict-description-${booking.id}` : undefined}
                           aria-pressed={isBeingDragged}
-                          className={`p-2 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-1 shadow-sm border-l-4 touch-manipulation ${
+                          className={`group relative p-2 rounded-lg focus:ring-2 focus:ring-primary focus:ring-offset-1 shadow-sm border-l-4 touch-manipulation ${
                             statusColors[displayStatus]
                           } ${
                             isBeingDragged ? 'booking-drag-preview z-50' : 'z-30 booking-draggable'
@@ -1636,7 +1685,6 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
                           onDragStart={(e) => handleDragStart(e, booking)}
                           onDragEnd={handleDragEnd}
                           data-testid={`timeline-booking-${booking.id}`}
-                          title={`${booking.customerName} - ${booking.serviceName || 'Service'} (${bookingDuration}min)${hasConflicts ? ' - CONFLICT!' : ''}${isDraggable ? ' - Drag to reschedule' : ' - Cannot be moved'}`}
                         >
                           {/* Enhanced Booking Header */}
                           <div className="flex items-center gap-1 mb-1">
@@ -1713,24 +1761,15 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
                             </Badge>
                           </div>
                           
-                          {/* Action Buttons */}
-                          {isDraggable && (
-                            <div className="absolute top-1 right-1 flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 hover:bg-background/50 opacity-70 hover:opacity-100"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveBooking(booking);
-                                }}
-                                aria-label={`Move ${booking.customerName}'s appointment`}
-                                data-testid={`button-timeline-move-${booking.id}`}
-                              >
-                                <Move className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
+                          {/* Quick Action Menu - Fresha style */}
+                          <AppointmentQuickMenu
+                            booking={booking}
+                            salonId={salonId}
+                            displayStatus={displayStatus}
+                            onViewDetails={() => setSelectedBooking(booking)}
+                            onMoveBooking={() => handleMoveBooking(booking)}
+                            compact={true}
+                          />
                         </div>
                       );
                     }).filter(Boolean);
@@ -1812,7 +1851,7 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
             return (
               <Card 
                 key={day.toISOString()} 
-                className={`min-h-32 transition-all duration-200 ${
+                className={`min-h-32 transition-all duration-200 overflow-visible ${
                   isToday ? 'ring-2 ring-primary' : ''
                 } ${
                   !isCurrentMonth && viewMode === 'month' ? 'opacity-40 bg-muted/20' : ''
@@ -1841,7 +1880,7 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="p-2 space-y-1">
+                <CardContent className="p-2 space-y-1 overflow-visible">
                   {dayBookings.slice(0, 3).map((booking) => {
                     const displayStatus = getDisplayStatus(booking);
                     const StatusIcon = statusIcons[displayStatus];
@@ -1855,7 +1894,7 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
                         tabIndex={0}
                         role="button"
                         aria-label={`${booking.customerName}'s appointment at ${booking.bookingTime}. Status: ${statusLabels[displayStatus]}${isDraggable ? '. Press Enter to view details or Space to move appointment' : '. Press Enter to view details'}`}
-                        className={`p-2 rounded-sm cursor-pointer hover:opacity-80 focus:ring-2 focus:ring-primary focus:ring-offset-1 ${statusColors[displayStatus]} ${
+                        className={`group relative p-2 rounded-sm cursor-pointer hover:opacity-80 focus:ring-2 focus:ring-primary focus:ring-offset-1 ${statusColors[displayStatus]} ${
                           isBeingDragged ? 'opacity-50 scale-95 shadow-lg' : ''
                         } ${isDraggable ? 'cursor-move' : ''} transition-all duration-200`}
                         onClick={() => setSelectedBooking(booking)}
@@ -1870,7 +1909,6 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
                         onDragStart={(e) => handleDragStart(e, booking)}
                         onDragEnd={handleDragEnd}
                         data-testid={`booking-item-${booking.id}`}
-                        title={isDraggable ? `Drag to reschedule ${booking.customerName}'s appointment` : `${booking.status} booking - cannot be moved`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1 text-xs">
@@ -1879,24 +1917,19 @@ export default function BookingCalendarView({ salonId, defaultViewMode = 'week' 
                             <Clock className="h-3 w-3" />
                             <span className="font-medium">{booking.bookingTime}</span>
                           </div>
-                          {isDraggable && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-5 w-5 p-0 hover:bg-background/50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleMoveBooking(booking);
-                              }}
-                              aria-label={`Move ${booking.customerName}'s appointment`}
-                              data-testid={`button-move-${booking.id}`}
-                            >
-                              <Move className="h-3 w-3" />
-                            </Button>
-                          )}
                         </div>
                         <div className="text-xs truncate">{booking.customerName}</div>
                         <div className="text-xs truncate">{booking.serviceName || 'Service'}</div>
+                        
+                        {/* Quick Action Menu - Fresha style */}
+                        <AppointmentQuickMenu
+                          booking={booking}
+                          salonId={salonId}
+                          displayStatus={displayStatus}
+                          onViewDetails={() => setSelectedBooking(booking)}
+                          onMoveBooking={() => handleMoveBooking(booking)}
+                          compact={true}
+                        />
                       </div>
                     );
                   })}
