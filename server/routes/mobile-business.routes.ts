@@ -44,6 +44,33 @@ const updateBookingStatusSchema = z.object({
   notes: z.string().optional(),
 });
 
+const checkoutItemSchema = z.object({
+  id: z.string(),
+  type: z.enum(['service', 'product']),
+  quantity: z.number().int().min(1).max(100),
+});
+
+const checkoutDiscountSchema = z.object({
+  type: z.enum(['percentage', 'fixed']),
+  value: z.number().min(0),
+  code: z.string().optional(),
+  reason: z.string().optional(),
+}).refine(
+  (data) => data.type !== 'percentage' || data.value <= 100,
+  { message: 'Percentage discount cannot exceed 100%' }
+);
+
+const checkoutSchema = z.object({
+  bookingId: z.string().optional(),
+  clientName: z.string().min(1, 'Client name is required'),
+  clientPhone: z.string().min(10, 'Valid phone number required'),
+  items: z.array(checkoutItemSchema).min(1, 'At least one item required'),
+  paymentMethod: z.enum(['cash', 'card', 'upi', 'wallet', 'savedCard', 'split']),
+  discount: checkoutDiscountSchema.optional(),
+  tipAmount: z.number().min(0).max(100000).optional(),
+  notes: z.string().max(500).optional(),
+});
+
 // Helper to get user's salon access
 async function getUserSalonId(userId: string): Promise<string | null> {
   // Check if user is staff at any salon
@@ -869,6 +896,410 @@ export function registerMobileBusinessRoutes(app: Express) {
     } catch (error) {
       console.error("Clients list API error:", error);
       res.status(500).json({ error: "Failed to fetch clients list" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/waitlist
+   * Get waitlist entries for the salon (business management view)
+   */
+  app.get("/api/mobile/business/waitlist", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const { status, limit = 50 } = req.query;
+
+      // Get waitlist entries with related data
+      const waitlistQuery = sql`
+        SELECT 
+          sw.id,
+          sw.user_id,
+          sw.salon_id,
+          sw.service_id,
+          sw.staff_id,
+          sw.requested_date,
+          sw.time_window_start,
+          sw.time_window_end,
+          sw.flexibility_days,
+          sw.priority,
+          sw.status,
+          sw.notified_at,
+          sw.response_deadline,
+          sw.expires_at,
+          sw.created_at,
+          u.fullName as client_name,
+          u.phoneNumber as client_phone,
+          s.name as service_name,
+          s.price as service_price,
+          s.durationMinutes as service_duration,
+          st.name as staff_name
+        FROM slot_waitlist sw
+        LEFT JOIN users u ON sw.user_id = u.id
+        LEFT JOIN services s ON sw.service_id = s.id
+        LEFT JOIN staff st ON sw.staff_id = st.id
+        WHERE sw.salon_id = ${salonId}
+        ${status ? sql`AND sw.status = ${status}` : sql``}
+        ORDER BY 
+          CASE sw.priority 
+            WHEN 4 THEN 1 
+            WHEN 3 THEN 2 
+            WHEN 2 THEN 3 
+            ELSE 4 
+          END,
+          sw.created_at ASC
+        LIMIT ${Number(limit)}
+      `;
+
+      const waitlistEntries = await db.execute(waitlistQuery);
+
+      // Calculate positions
+      const entries = (waitlistEntries.rows as any[]).map((entry, idx) => ({
+        id: entry.id,
+        clientName: entry.client_name || 'Unknown',
+        clientPhone: entry.client_phone || '',
+        serviceName: entry.service_name || 'Service',
+        servicePrice: entry.service_price || 0,
+        serviceDuration: entry.service_duration || 30,
+        staffName: entry.staff_name,
+        staffId: entry.staff_id,
+        requestedDate: entry.requested_date,
+        timeWindow: `${entry.time_window_start} - ${entry.time_window_end}`,
+        flexibilityDays: entry.flexibility_days || 1,
+        priority: entry.priority === 4 ? 'diamond' : entry.priority === 3 ? 'platinum' : entry.priority === 2 ? 'gold' : 'regular',
+        position: idx + 1,
+        status: entry.status,
+        notifiedAt: entry.notified_at,
+        responseDeadline: entry.response_deadline,
+        createdAt: entry.created_at,
+        expiresAt: entry.expires_at,
+      }));
+
+      // Stats
+      const stats = {
+        total: entries.length,
+        waiting: entries.filter(e => e.status === 'waiting').length,
+        notified: entries.filter(e => e.status === 'notified').length,
+        highValue: entries.filter(e => e.servicePrice >= 200000 && e.status === 'waiting').length, // >=2000 in rupees
+      };
+
+      res.json({
+        entries,
+        stats,
+      });
+    } catch (error) {
+      console.error("Business waitlist API error:", error);
+      res.status(500).json({ error: "Failed to fetch waitlist" });
+    }
+  });
+
+  /**
+   * POST /api/mobile/business/waitlist/:id/notify
+   * Notify a waitlist entry about an available slot
+   */
+  app.post("/api/mobile/business/waitlist/:id/notify", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { id } = req.params;
+      const { slotTime, slotDate } = req.body;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      if (!slotTime || !slotDate) {
+        return res.status(400).json({ error: "Slot time and date are required" });
+      }
+
+      // Update waitlist entry status
+      await db.execute(sql`
+        UPDATE slot_waitlist 
+        SET 
+          status = 'notified',
+          notified_at = NOW(),
+          response_deadline = NOW() + INTERVAL '12 hours'
+        WHERE id = ${id} AND salon_id = ${salonId}
+      `);
+
+      res.json({
+        success: true,
+        message: "Client notified about available slot",
+      });
+    } catch (error) {
+      console.error("Waitlist notify API error:", error);
+      res.status(500).json({ error: "Failed to notify client" });
+    }
+  });
+
+  /**
+   * DELETE /api/mobile/business/waitlist/:id
+   * Remove entry from waitlist
+   */
+  app.delete("/api/mobile/business/waitlist/:id", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { id } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      await db.execute(sql`
+        DELETE FROM slot_waitlist 
+        WHERE id = ${id} AND salon_id = ${salonId}
+      `);
+
+      res.json({
+        success: true,
+        message: "Removed from waitlist",
+      });
+    } catch (error) {
+      console.error("Waitlist delete API error:", error);
+      res.status(500).json({ error: "Failed to remove from waitlist" });
+    }
+  });
+
+  /**
+   * POST /api/mobile/business/checkout
+   * Process a checkout/sale transaction with server-side price validation
+   */
+  app.post("/api/mobile/business/checkout", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const validation = checkoutSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data", 
+          details: validation.error.errors 
+        });
+      }
+
+      const { bookingId, clientName, clientPhone, items, paymentMethod, discount, tipAmount, notes } = validation.data;
+
+      const serviceItems = items.filter(i => i.type === 'service');
+      const productItems = items.filter(i => i.type === 'product');
+      
+      if (productItems.length > 0) {
+        return res.status(400).json({ 
+          error: "Product checkout not yet supported. Please use services only." 
+        });
+      }
+      
+      if (serviceItems.length === 0) {
+        return res.status(400).json({ 
+          error: "At least one service is required for checkout" 
+        });
+      }
+
+      const serviceIds = serviceItems.map(i => i.id);
+      let verifiedItems: Array<{ id: string; type: string; name: string; pricePaise: number; quantity: number }> = [];
+      
+      const serviceRecords = await db.select()
+        .from(services)
+        .where(and(
+          inArray(services.id, serviceIds),
+          eq(services.salonId, salonId)
+        ));
+      
+      if (serviceRecords.length !== serviceIds.length) {
+        const foundIds = new Set(serviceRecords.map(s => s.id));
+        const missingIds = serviceIds.filter(id => !foundIds.has(id));
+        return res.status(400).json({ 
+          error: `Services not found or not available: ${missingIds.join(', ')}` 
+        });
+      }
+      
+      const serviceMap = new Map(serviceRecords.map(s => [s.id, s]));
+      
+      for (const item of serviceItems) {
+        const service = serviceMap.get(item.id)!;
+        verifiedItems.push({
+          id: service.id,
+          type: 'service',
+          name: service.name,
+          pricePaise: service.priceInPaisa,
+          quantity: item.quantity,
+        });
+      }
+
+      const subtotalPaise = verifiedItems.reduce((sum, item) => sum + (item.pricePaise * item.quantity), 0);
+      
+      let discountPaise = 0;
+      if (discount) {
+        if (discount.type === 'percentage') {
+          discountPaise = Math.round(subtotalPaise * (discount.value / 100));
+        } else {
+          discountPaise = Math.min(Math.round(discount.value * 100), subtotalPaise);
+        }
+      }
+      
+      const afterDiscountPaise = Math.max(0, subtotalPaise - discountPaise);
+      const gstPaise = Math.round(afterDiscountPaise * 0.18);
+      const tipPaise = Math.min(Math.round((tipAmount || 0) * 100), 10000000);
+      const grandTotalPaise = afterDiscountPaise + gstPaise + tipPaise;
+
+      const transactionId = `TXN${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+
+      if (bookingId) {
+        const existingBooking = await db.query.bookings.findFirst({
+          where: and(
+            eq(bookings.id, bookingId),
+            eq(bookings.salonId, salonId)
+          ),
+        });
+        
+        if (!existingBooking) {
+          return res.status(404).json({ error: "Booking not found" });
+        }
+        
+        await db.update(bookings)
+          .set({ 
+            status: 'completed',
+            finalAmount: grandTotalPaise,
+            paymentStatus: 'paid',
+          })
+          .where(and(
+            eq(bookings.id, bookingId),
+            eq(bookings.salonId, salonId)
+          ));
+      }
+
+      const transaction = {
+        id: transactionId,
+        salonId,
+        bookingId,
+        clientName,
+        clientPhone,
+        items: verifiedItems.map(i => ({
+          id: i.id,
+          type: i.type,
+          name: i.name,
+          price: i.pricePaise,
+          quantity: i.quantity,
+          priceFormatted: `₹${(i.pricePaise / 100).toFixed(2)}`,
+        })),
+        subtotal: subtotalPaise,
+        subtotalFormatted: `₹${(subtotalPaise / 100).toFixed(2)}`,
+        discount: discountPaise,
+        discountFormatted: `₹${(discountPaise / 100).toFixed(2)}`,
+        discountDetails: discount,
+        gst: gstPaise,
+        gstFormatted: `₹${(gstPaise / 100).toFixed(2)}`,
+        tip: tipPaise,
+        tipFormatted: `₹${(tipPaise / 100).toFixed(2)}`,
+        total: grandTotalPaise,
+        totalFormatted: `₹${(grandTotalPaise / 100).toFixed(2)}`,
+        paymentMethod,
+        notes,
+        status: 'completed',
+        processedBy: userId,
+        processedAt: new Date().toISOString(),
+      };
+
+      console.log(`[Checkout] Transaction ${transactionId} processed for salon ${salonId}: ₹${(grandTotalPaise / 100).toFixed(2)}`);
+
+      res.json({
+        success: true,
+        transaction,
+        message: "Payment processed successfully",
+      });
+    } catch (error) {
+      console.error("Checkout API error:", error);
+      res.status(500).json({ error: "Failed to process checkout" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/checkout/appointment/:bookingId
+   * Get appointment details for checkout
+   */
+  app.get("/api/mobile/business/checkout/appointment/:bookingId", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { bookingId } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      // Get booking with services
+      const booking = await db.query.bookings.findFirst({
+        where: and(
+          eq(bookings.id, bookingId),
+          eq(bookings.salonId, salonId)
+        ),
+      });
+
+      if (!booking) {
+        return res.status(404).json({ error: "Booking not found" });
+      }
+
+      // Parse services from booking
+      const serviceList = booking.services as any[] || [];
+      
+      // Get service details
+      const serviceIds = serviceList.map((s: any) => s.serviceId || s.id).filter(Boolean);
+      
+      const serviceDetails = serviceIds.length > 0 
+        ? await db.select()
+            .from(services)
+            .where(inArray(services.id, serviceIds))
+        : [];
+
+      // Get staff details
+      const staffMember = booking.staffId 
+        ? await db.query.staff.findFirst({
+            where: eq(staff.id, booking.staffId),
+          })
+        : null;
+
+      // Build cart items (price in paise for consistency)
+      const cartItems = serviceDetails.map(s => ({
+        id: s.id,
+        type: 'service' as const,
+        name: s.name,
+        price: s.priceInPaisa,
+        priceFormatted: `₹${(s.priceInPaisa / 100).toFixed(2)}`,
+        quantity: 1,
+        duration: s.durationMinutes,
+        staffName: staffMember?.name || undefined,
+        icon: '✂️',
+      }));
+
+      res.json({
+        booking: {
+          id: booking.id,
+          date: booking.bookingDate,
+          time: booking.bookingTime,
+          status: booking.status,
+        },
+        client: {
+          name: booking.customerName,
+          phone: booking.customerPhone,
+          email: booking.customerEmail,
+        },
+        cartItems,
+        staff: staffMember ? {
+          id: staffMember.id,
+          name: staffMember.name,
+        } : null,
+      });
+    } catch (error) {
+      console.error("Checkout appointment API error:", error);
+      res.status(500).json({ error: "Failed to fetch appointment for checkout" });
     }
   });
 

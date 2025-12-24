@@ -4,24 +4,9 @@ import { useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDashboard, useTodayAppointments } from '@stylemate/core';
+import { COLORS, GRADIENTS } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
-
-const COLORS = {
-  background: '#0F172A',
-  cardBg: '#1E293B',
-  cardBorder: '#334155',
-  textPrimary: '#F8FAFC',
-  textSecondary: '#94A3B8',
-  textMuted: '#64748B',
-  violet: '#8B5CF6',
-  fuchsia: '#D946EF',
-  green: '#10B981',
-  amber: '#F59E0B',
-  blue: '#3B82F6',
-  cyan: '#06B6D4',
-  red: '#EF4444',
-};
 
 interface StatCardProps {
   icon: string;
@@ -484,7 +469,7 @@ export default function DashboardScreen() {
             <QuickActionButton
               icon="💳"
               label="Checkout"
-              onPress={() => {}}
+              onPress={() => router.push('/appointments/checkout')}
             />
           </View>
         </View>

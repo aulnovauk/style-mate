@@ -1,37 +1,82 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import {
+  COLORS,
+  GRADIENTS,
+  SPACING,
+  FONT_SIZES,
+  BORDER_RADIUS,
+} from '../../constants/theme';
+import { useClientDetails } from '@stylemate/core/hooks/useBusinessApi';
 
 export default function ClientDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { data, loading, error } = useClientDetails(id);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.violet} />
+          <Text style={styles.loadingText}>Loading client...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorText}>{error || 'Client not found'}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const client = data.client;
+  const stats = data.stats;
+  const initials = `${client.firstName?.[0] || ''}${client.lastName?.[0] || ''}`.toUpperCase() || '?';
+
+  const formatCurrency = (amountInPaisa: number) => {
+    return `₹${(amountInPaisa / 100).toLocaleString('en-IN')}`;
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.content}>
         <View style={styles.header}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>PS</Text>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
-          <Text style={styles.clientName}>Priya Sharma</Text>
-          <Text style={styles.clientPhone}>+91 98765 43210</Text>
-          <View style={styles.vipBadge}>
-            <Text style={styles.vipText}>⭐ VIP Client</Text>
-          </View>
+          <Text style={styles.clientName}>{client.name}</Text>
+          <Text style={styles.clientPhone}>{client.phone}</Text>
+          {client.isVIP && (
+            <View style={styles.vipBadge}>
+              <Text style={styles.vipText}>⭐ VIP Client</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>24</Text>
+            <Text style={styles.statValue}>{stats.totalVisits}</Text>
             <Text style={styles.statLabel}>Total Visits</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>₹48,500</Text>
+            <Text style={styles.statValue}>{formatCurrency(stats.totalSpentInPaisa)}</Text>
             <Text style={styles.statLabel}>Total Spent</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>4.9</Text>
-            <Text style={styles.statLabel}>Avg Rating</Text>
+            <Text style={styles.statValue}>{stats.upcomingAppointments}</Text>
+            <Text style={styles.statLabel}>Upcoming</Text>
           </View>
         </View>
 
@@ -48,23 +93,39 @@ export default function ClientDetailScreen() {
             <Text style={styles.actionIcon}>📞</Text>
             <Text style={styles.actionText}>Call</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => router.push(`/clients/add-edit?id=${id}`)}
+          >
+            <Text style={styles.actionIcon}>✏️</Text>
+            <Text style={styles.actionText}>Edit</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.preferenceCard}>
-            <View style={styles.preferenceRow}>
-              <Text style={styles.preferenceLabel}>Preferred Staff</Text>
-              <Text style={styles.preferenceValue}>Anita Desai</Text>
-            </View>
-            <View style={styles.preferenceRow}>
-              <Text style={styles.preferenceLabel}>Favorite Services</Text>
-              <Text style={styles.preferenceValue}>Haircut, Hair Color, Facial</Text>
-            </View>
-            <View style={styles.preferenceRow}>
-              <Text style={styles.preferenceLabel}>Notes</Text>
-              <Text style={styles.preferenceValue}>Prefers morning slots, allergic to certain hair dyes</Text>
-            </View>
+            {client.preferredStaffName && (
+              <View style={styles.preferenceRow}>
+                <Text style={styles.preferenceLabel}>Preferred Staff</Text>
+                <Text style={styles.preferenceValue}>{client.preferredStaffName}</Text>
+              </View>
+            )}
+            {data.preferredServices && data.preferredServices.length > 0 && (
+              <View style={styles.preferenceRow}>
+                <Text style={styles.preferenceLabel}>Favorite Services</Text>
+                <Text style={styles.preferenceValue}>{data.preferredServices.join(', ')}</Text>
+              </View>
+            )}
+            {client.notes && (
+              <View style={styles.preferenceRow}>
+                <Text style={styles.preferenceLabel}>Notes</Text>
+                <Text style={styles.preferenceValue}>{client.notes}</Text>
+              </View>
+            )}
+            {!client.preferredStaffName && (!data.preferredServices || data.preferredServices.length === 0) && !client.notes && (
+              <Text style={styles.noDataText}>No preferences recorded</Text>
+            )}
           </View>
         </View>
 
@@ -76,37 +137,60 @@ export default function ClientDetailScreen() {
             </TouchableOpacity>
           </View>
           
-          <TouchableOpacity style={styles.visitCard}>
-            <View style={styles.visitDate}>
-              <Text style={styles.visitDay}>20</Text>
-              <Text style={styles.visitMonth}>Dec</Text>
+          {data.recentVisits && data.recentVisits.length > 0 ? (
+            data.recentVisits.slice(0, 3).map((visit) => {
+              const visitDate = new Date(visit.date);
+              return (
+                <TouchableOpacity key={visit.id} style={styles.visitCard}>
+                  <View style={styles.visitDate}>
+                    <Text style={styles.visitDay}>{visitDate.getDate()}</Text>
+                    <Text style={styles.visitMonth}>{visitDate.toLocaleString('en', { month: 'short' })}</Text>
+                  </View>
+                  <View style={styles.visitInfo}>
+                    <Text style={styles.visitService}>{visit.services.join(', ')}</Text>
+                    <Text style={styles.visitStaff}>with {visit.staffName}</Text>
+                  </View>
+                  <Text style={styles.visitAmount}>{formatCurrency(visit.amountInPaisa)}</Text>
+                </TouchableOpacity>
+              );
+            })
+          ) : (
+            <View style={styles.emptyVisits}>
+              <Text style={styles.noDataText}>No visits yet</Text>
             </View>
-            <View style={styles.visitInfo}>
-              <Text style={styles.visitService}>Haircut + Color</Text>
-              <Text style={styles.visitStaff}>with Anita Desai</Text>
-            </View>
-            <Text style={styles.visitAmount}>₹3,000</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.visitCard}>
-            <View style={styles.visitDate}>
-              <Text style={styles.visitDay}>05</Text>
-              <Text style={styles.visitMonth}>Dec</Text>
-            </View>
-            <View style={styles.visitInfo}>
-              <Text style={styles.visitService}>Facial Treatment</Text>
-              <Text style={styles.visitStaff}>with Meera Joshi</Text>
-            </View>
-            <Text style={styles.visitAmount}>₹2,500</Text>
-          </TouchableOpacity>
+          )}
         </View>
+
+        {data.activePackages && data.activePackages.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Active Packages</Text>
+            {data.activePackages.map((pkg) => (
+              <View key={pkg.id} style={styles.packageCard}>
+                <Text style={styles.packageName}>{pkg.name}</Text>
+                <Text style={styles.packageRemaining}>{pkg.remainingSessions} sessions remaining</Text>
+                {pkg.expiryDate && (
+                  <Text style={styles.packageExpiry}>
+                    Expires: {new Date(pkg.expiryDate).toLocaleDateString()}
+                  </Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.bookButton}>
-          <Text style={styles.bookText}>Book Appointment</Text>
+          <LinearGradient
+            colors={GRADIENTS.primary}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.bookButtonGradient}
+          >
+            <Text style={styles.bookText}>Book Appointment</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -116,187 +200,258 @@ export default function ClientDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textSecondary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  errorIcon: {
+    fontSize: FONT_SIZES.xxxl + 16,
+    marginBottom: SPACING.lg,
+  },
+  errorText: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+  },
+  retryButton: {
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.violet,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  retryButtonText: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.white,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
   },
   header: {
     alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+    paddingVertical: SPACING.xxl,
+    paddingHorizontal: SPACING.xl,
   },
   avatar: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    backgroundColor: '#334155',
+    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: COLORS.cardBorder,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   avatarText: {
-    fontSize: 28,
+    fontSize: FONT_SIZES.xxl + 4,
     fontWeight: '600',
-    color: '#F8FAFC',
+    color: COLORS.textPrimary,
   },
   clientName: {
-    fontSize: 24,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: COLORS.textPrimary,
   },
   clientPhone: {
-    fontSize: 15,
-    color: '#94A3B8',
-    marginTop: 4,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
   },
   vipBadge: {
-    marginTop: 12,
-    backgroundColor: '#F59E0B20',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
+    marginTop: SPACING.md,
+    backgroundColor: `${COLORS.amber}20`,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
   },
   vipText: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: COLORS.amber,
   },
   statsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 12,
+    paddingHorizontal: SPACING.xl,
+    gap: SPACING.md,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xl,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: COLORS.textPrimary,
   },
   statLabel: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 4,
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
   },
   actionRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    gap: 12,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xl,
+    gap: SPACING.md,
   },
   actionButton: {
     flex: 1,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
     alignItems: 'center',
   },
   actionIcon: {
-    fontSize: 24,
-    marginBottom: 8,
+    fontSize: FONT_SIZES.xxl,
+    marginBottom: SPACING.sm,
   },
   actionText: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '500',
-    color: '#F8FAFC',
+    color: COLORS.textPrimary,
   },
   section: {
-    paddingHorizontal: 20,
-    marginTop: 8,
+    paddingHorizontal: SPACING.xl,
+    marginTop: SPACING.sm,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: '#F8FAFC',
-    marginBottom: 12,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
   },
   viewAll: {
-    fontSize: 14,
-    color: '#3B82F6',
+    fontSize: FONT_SIZES.md,
+    color: COLORS.violet,
   },
   preferenceCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
   },
   preferenceRow: {
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   preferenceLabel: {
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 4,
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.textMuted,
+    marginBottom: SPACING.xs,
   },
   preferenceValue: {
-    fontSize: 14,
-    color: '#F8FAFC',
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textPrimary,
+  },
+  noDataText: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    paddingVertical: SPACING.md,
   },
   visitCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
   visitDate: {
     width: 50,
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: SPACING.md,
   },
   visitDay: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xl,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: COLORS.textPrimary,
   },
   visitMonth: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.textMuted,
   },
   visitInfo: {
     flex: 1,
   },
   visitService: {
-    fontSize: 15,
+    fontSize: FONT_SIZES.md,
     fontWeight: '500',
-    color: '#F8FAFC',
+    color: COLORS.textPrimary,
   },
   visitStaff: {
-    fontSize: 13,
-    color: '#94A3B8',
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   visitAmount: {
-    fontSize: 15,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: '#10B981',
+    color: COLORS.green,
+  },
+  emptyVisits: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.xl,
+  },
+  packageCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    marginBottom: SPACING.sm,
+  },
+  packageName: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  packageRemaining: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.green,
+    marginTop: SPACING.xs,
+  },
+  packageExpiry: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.textMuted,
+    marginTop: SPACING.xs,
   },
   footer: {
-    padding: 20,
+    padding: SPACING.xl,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: COLORS.cardBorder,
   },
   bookButton: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+  },
+  bookButtonGradient: {
+    paddingVertical: SPACING.lg,
     alignItems: 'center',
   },
   bookText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.white,
   },
 });

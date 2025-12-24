@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        violet: {
+                            600: '#8B5CF6',
+                        },
+                        fuchsia: {
+                            500: '#D946EF',
+                        },
+                        slate: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>::-webkit-scrollbar { display: none;}</style>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+
+<div id="mobile-container" class="max-w-md mx-auto bg-slate-900 min-h-screen relative pb-20">
+
+    <header id="services-header" class="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button id="back-button" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-arrow-left text-white"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg font-semibold">Services Management</h1>
+                    <p class="text-xs text-slate-400">Manage your salon services</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-magnifying-glass text-white"></i>
+                </button>
+                <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-ellipsis-vertical text-white"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="services-main" class="px-4 py-4 space-y-6">
+
+        <section id="services-stats-section" class="space-y-3">
+            <div class="grid grid-cols-3 gap-3">
+                <div id="stat-total-services" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-center mb-2">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                            <i class="fa-solid fa-scissors text-white"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-center">42</p>
+                    <p class="text-xs text-slate-400 text-center mt-1">Total Services</p>
+                </div>
+
+                <div id="stat-active-services" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-center mb-2">
+                        <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-check-circle text-green-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-center text-green-400">38</p>
+                    <p class="text-xs text-slate-400 text-center mt-1">Active</p>
+                </div>
+
+                <div id="stat-categories" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-center mb-2">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-layer-group text-blue-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-bold text-center text-blue-400">8</p>
+                    <p class="text-xs text-slate-400 text-center mt-1">Categories</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="category-filter-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Categories</h2>
+                <button class="text-sm text-violet-400 flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Add Category</span>
+                </button>
+            </div>
+
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button id="category-all" class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-2">
+                    <span>All Services</span>
+                    <span class="bg-white/20 px-2 py-0.5 rounded-full text-xs">42</span>
+                </button>
+                <button id="category-hair" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-2">
+                    <i class="fa-solid fa-scissors text-violet-400"></i>
+                    <span>Hair</span>
+                    <span class="bg-slate-700 px-2 py-0.5 rounded-full text-xs">12</span>
+                </button>
+                <button id="category-makeup" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i>
+                    <span>Makeup</span>
+                    <span class="bg-slate-700 px-2 py-0.5 rounded-full text-xs">8</span>
+                </button>
+                <button id="category-spa" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-2">
+                    <i class="fa-solid fa-spa text-blue-400"></i>
+                    <span>Spa</span>
+                    <span class="bg-slate-700 px-2 py-0.5 rounded-full text-xs">7</span>
+                </button>
+                <button id="category-nails" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-2">
+                    <i class="fa-solid fa-hand-sparkles text-amber-400"></i>
+                    <span>Nails</span>
+                    <span class="bg-slate-700 px-2 py-0.5 rounded-full text-xs">6</span>
+                </button>
+                <button id="category-skin" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-full text-sm font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-2">
+                    <i class="fa-solid fa-face-smile text-green-400"></i>
+                    <span>Skin Care</span>
+                    <span class="bg-slate-700 px-2 py-0.5 rounded-full text-xs">9</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="quick-filters-section" class="space-y-3">
+            <div class="flex items-center gap-2 overflow-x-auto pb-2">
+                <button class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1.5 border border-slate-700">
+                    <i class="fa-solid fa-filter text-violet-400 text-xs"></i>
+                    <span>Filter</span>
+                </button>
+                <button class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1.5 border border-slate-700">
+                    <i class="fa-solid fa-arrow-down-short-wide text-violet-400 text-xs"></i>
+                    <span>Sort</span>
+                </button>
+                <button class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1.5 border border-slate-700">
+                    <i class="fa-solid fa-clock text-violet-400 text-xs"></i>
+                    <span>Duration</span>
+                </button>
+                <button class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1.5 border border-slate-700">
+                    <i class="fa-solid fa-indian-rupee-sign text-violet-400 text-xs"></i>
+                    <span>Price Range</span>
+                </button>
+                <button class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium whitespace-nowrap active:scale-95 transition-transform flex items-center gap-1.5 border border-slate-700">
+                    <i class="fa-solid fa-star text-violet-400 text-xs"></i>
+                    <span>Popular</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="featured-services-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Featured Services</h2>
+                <button class="text-sm text-violet-400">View All</button>
+            </div>
+
+            <div class="space-y-3">
+                <div id="featured-service-1" class="bg-gradient-to-br from-violet-600/20 to-fuchsia-500/20 rounded-xl p-4 border border-violet-500/30">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-scissors text-white text-2xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h3 class="font-semibold text-base">Premium Hair Styling</h3>
+                                        <p class="text-sm text-slate-400 mt-1">Complete hair transformation</p>
+                                    </div>
+                                    <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                        <i class="fa-solid fa-star text-xs"></i>
+                                        4.9
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-3 mt-3">
+                                    <span class="text-xs text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-clock text-xs"></i>
+                                        90 min
+                                    </span>
+                                    <span class="text-xs text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check text-xs"></i>
+                                        124 bookings
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-violet-500/30">
+                        <div>
+                            <p class="text-2xl font-bold text-violet-400">₹1,800</p>
+                            <p class="text-xs text-slate-400">Starting price</p>
+                        </div>
+                        <button class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-pencil mr-1"></i>
+                            Edit
+                        </button>
+                    </div>
+                </div>
+
+                <div id="featured-service-2" class="bg-gradient-to-br from-pink-600/20 to-rose-500/20 rounded-xl p-4 border border-pink-500/30">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-wand-magic-sparkles text-white text-2xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h3 class="font-semibold text-base">Bridal Makeup Package</h3>
+                                        <p class="text-sm text-slate-400 mt-1">Complete bridal look</p>
+                                    </div>
+                                    <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                        <i class="fa-solid fa-star text-xs"></i>
+                                        5.0
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-3 mt-3">
+                                    <span class="text-xs text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-clock text-xs"></i>
+                                        180 min
+                                    </span>
+                                    <span class="text-xs text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check text-xs"></i>
+                                        89 bookings
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-pink-500/30">
+                        <div>
+                            <p class="text-2xl font-bold text-pink-400">₹8,500</p>
+                            <p class="text-xs text-slate-400">Starting price</p>
+                        </div>
+                        <button class="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-600 text-white rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-pencil mr-1"></i>
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="all-services-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">All Services</h2>
+                <div class="flex items-center gap-2">
+                    <button class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center active:scale-95 transition-transform">
+                        <i class="fa-solid fa-grip text-violet-400"></i>
+                    </button>
+                    <button class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center active:scale-95 transition-transform">
+                        <i class="fa-solid fa-list text-white"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div id="service-card-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-scissors text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Hair Cut & Styling</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Professional haircut with styling</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    45 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.8
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-violet-400">₹600</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">52</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-droplet text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Hair Color Treatment</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Premium color with care</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    120 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.7
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-blue-400">₹2,200</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">38</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Party Makeup</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Glamorous party look</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    60 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.9
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-pink-400">₹1,500</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">67</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-4" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-spa text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Facial Treatment</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Deep cleansing facial</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    75 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.8
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-green-400">₹1,200</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">45</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-5" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-hand-sparkles text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Manicure & Pedicure</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Complete nail care</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    90 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.6
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-amber-400">₹800</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">71</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-6" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-spray-can-sparkles text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Hair Spa Treatment</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Nourishing hair therapy</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    60 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.9
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-purple-400">₹1,400</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">56</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-7" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-paintbrush text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Nail Art Design</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Creative nail designs</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    45 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.7
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-red-400">₹500</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">34</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-8" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-face-smile text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Anti-Aging Treatment</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Advanced skin care</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    90 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    5.0
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-teal-400">₹2,800</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">29</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-9" class="bg-slate-800 rounded-xl p-4 border border-slate-700 opacity-60">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-scissors text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Beard Trim & Grooming</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Professional beard styling</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-slate-700 text-slate-400 px-2 py-1 rounded-full">Inactive</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    30 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.5
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-slate-400">₹300</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-400">12</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="service-card-10" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-fire text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-semibold">Hair Straightening</h3>
+                                    <p class="text-sm text-slate-400 mt-0.5">Permanent straightening</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    150 min
+                                </span>
+                                <span class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                    4.6
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div>
+                                        <p class="text-lg font-bold text-yellow-400">₹3,500</p>
+                                        <p class="text-xs text-slate-400">Base price</p>
+                                    </div>
+                                    <div class="h-8 w-px bg-slate-700"></div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-300">23</p>
+                                        <p class="text-xs text-slate-400">Bookings</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                                    Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="service-packages-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Service Packages</h2>
+                <button class="text-sm text-violet-400 flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Create Package</span>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div id="package-card-1" class="bg-gradient-to-br from-violet-900/40 to-fuchsia-900/40 rounded-xl p-4 border border-violet-500/50">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white px-2 py-1 rounded-full font-medium">PACKAGE</span>
+                                <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-xs"></i>
+                                    Best Seller
+                                </span>
+                            </div>
+                            <h3 class="font-bold text-lg">Bride-to-Be Complete Package</h3>
+                            <p class="text-sm text-slate-300 mt-1">Pre-bridal treatments + Bridal makeup</p>
+                        </div>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center active:scale-95 transition-transform">
+                            <i class="fa-solid fa-ellipsis-vertical text-slate-300"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-2 mb-3">
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Bridal Makeup (3 hours)</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Hair Styling & Setting</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Facial Treatment (2 sessions)</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Manicure & Pedicure</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 border-t border-violet-500/30">
+                        <div>
+                            <div class="flex items-baseline gap-2">
+                                <p class="text-2xl font-bold text-violet-400">₹15,999</p>
+                                <p class="text-sm text-slate-400 line-through">₹18,500</p>
+                            </div>
+                            <p class="text-xs text-green-400 mt-1">Save ₹2,501 (14% off)</p>
+                        </div>
+                        <button class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            Edit Package
+                        </button>
+                    </div>
+                </div>
+
+                <div id="package-card-2" class="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 rounded-xl p-4 border border-blue-500/50">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-2 py-1 rounded-full font-medium">PACKAGE</span>
+                            </div>
+                            <h3 class="font-bold text-lg">Monthly Grooming Package</h3>
+                            <p class="text-sm text-slate-300 mt-1">4 haircuts + 2 facials per month</p>
+                        </div>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center active:scale-95 transition-transform">
+                            <i class="fa-solid fa-ellipsis-vertical text-slate-300"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-2 mb-3">
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>4 Haircuts (any style)</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>2 Facial Treatments</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Free beard trim with each haircut</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 border-t border-blue-500/30">
+                        <div>
+                            <div class="flex items-baseline gap-2">
+                                <p class="text-2xl font-bold text-blue-400">₹3,999</p>
+                                <p class="text-sm text-slate-400 line-through">₹5,200</p>
+                            </div>
+                            <p class="text-xs text-green-400 mt-1">Save ₹1,201 (23% off)</p>
+                        </div>
+                        <button class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            Edit Package
+                        </button>
+                    </div>
+                </div>
+
+                <div id="package-card-3" class="bg-gradient-to-br from-pink-900/40 to-rose-900/40 rounded-xl p-4 border border-pink-500/50">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs bg-gradient-to-r from-pink-600 to-rose-500 text-white px-2 py-1 rounded-full font-medium">PACKAGE</span>
+                            </div>
+                            <h3 class="font-bold text-lg">Glow & Shine Package</h3>
+                            <p class="text-sm text-slate-300 mt-1">Complete skin & hair care</p>
+                        </div>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center active:scale-95 transition-transform">
+                            <i class="fa-solid fa-ellipsis-vertical text-slate-300"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-2 mb-3">
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Gold Facial Treatment</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Hair Spa with Keratin</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-slate-300">
+                            <i class="fa-solid fa-check text-green-400 text-xs"></i>
+                            <span>Manicure & Pedicure</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 border-t border-pink-500/30">
+                        <div>
+                            <div class="flex items-baseline gap-2">
+                                <p class="text-2xl font-bold text-pink-400">₹4,299</p>
+                                <p class="text-sm text-slate-400 line-through">₹5,800</p>
+                            </div>
+                            <p class="text-xs text-green-400 mt-1">Save ₹1,501 (26% off)</p>
+                        </div>
+                        <button class="px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-500 text-white rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            Edit Package
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="service-pricing-tiers-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Pricing Tiers</h2>
+                <button class="text-sm text-violet-400">Manage Tiers</button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <div class="space-y-3">
+                    <div id="tier-basic" class="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center">
+                                <i class="fa-solid fa-star text-slate-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm">Basic</h3>
+                                <p class="text-xs text-slate-400">Standard services</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-slate-300">18 Services</p>
+                            <p class="text-xs text-slate-400">₹300 - ₹2,000</p>
+                        </div>
+                    </div>
+
+                    <div id="tier-premium" class="flex items-center justify-between p-3 bg-gradient-to-r from-violet-600/20 to-fuchsia-500/20 rounded-lg border border-violet-500/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                                <i class="fa-solid fa-crown text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm">Premium</h3>
+                                <p class="text-xs text-slate-400">Advanced treatments</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-violet-400">16 Services</p>
+                            <p class="text-xs text-slate-400">₹1,500 - ₹5,000</p>
+                        </div>
+                    </div>
+
+                    <div id="tier-luxury" class="flex items-center justify-between p-3 bg-gradient-to-r from-amber-600/20 to-yellow-500/20 rounded-lg border border-amber-500/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center">
+                                <i class="fa-solid fa-gem text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm">Luxury</h3>
+                                <p class="text-xs text-slate-400">Exclusive experiences</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-amber-400">8 Services</p>
+                            <p class="text-xs text-slate-400">₹5,000 - ₹15,000</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="service-addons-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Popular Add-ons</h2>
+                <button class="text-sm text-violet-400 flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Add New</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div id="addon-card-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-plus text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Head Massage</h3>
+                    <p class="text-xs text-slate-400 mb-3">Relaxing 15-min massage</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-lg font-bold text-violet-400">₹200</p>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                            <i class="fa-solid fa-pencil text-slate-300 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="addon-card-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-leaf text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Organic Mask</h3>
+                    <p class="text-xs text-slate-400 mb-3">Natural ingredients</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-lg font-bold text-green-400">₹350</p>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                            <i class="fa-solid fa-pencil text-slate-300 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="addon-card-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-droplet text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Deep Conditioning</h3>
+                    <p class="text-xs text-slate-400 mb-3">Intensive hair treatment</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-lg font-bold text-blue-400">₹450</p>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                            <i class="fa-solid fa-pencil text-slate-300 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="addon-card-4" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-sparkles text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Nail Extensions</h3>
+                    <p class="text-xs text-slate-400 mb-3">Acrylic or gel</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-lg font-bold text-amber-400">₹800</p>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                            <i class="fa-solid fa-pencil text-slate-300 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="service-duration-settings-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Duration Settings</h2>
+                <button class="text-sm text-violet-400">Configure</button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-clock text-green-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold">Buffer Time</p>
+                                <p class="text-xs text-slate-400">Between appointments</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-minus text-slate-400"></i>
+                            </button>
+                            <span class="text-lg font-bold text-white w-12 text-center">15</span>
+                            <button class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-plus text-white"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-slate-700"></div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-hourglass-half text-blue-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold">Minimum Duration</p>
+                                <p class="text-xs text-slate-400">Shortest service time</p>
+                            </div>
+                        </div>
+                        <span class="text-lg font-bold text-blue-400">15 min</span>
+                    </div>
+
+                    <div class="h-px bg-slate-700"></div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-hourglass-end text-amber-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold">Maximum Duration</p>
+                                <p class="text-xs text-slate-400">Longest service time</p>
+                            </div>
+                        </div>
+                        <span class="text-lg font-bold text-amber-400">240 min</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="service-staff-assignment-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Staff Specializations</h2>
+                <button class="text-sm text-violet-400">Manage</button>
+            </div>
+
+            <div class="space-y-3">
+                <div id="staff-spec-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-8.jpg" alt="Staff" class="w-12 h-12 rounded-full object-cover">
+                            <div>
+                                <h3 class="font-semibold">Rahul Kumar</h3>
+                                <p class="text-xs text-slate-400">Senior Stylist</p>
+                            </div>
+                        </div>
+                        <button class="text-violet-400 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-violet-600/20 text-violet-400 px-2 py-1 rounded-full">Hair Styling</span>
+                        <span class="text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full">Hair Color</span>
+                        <span class="text-xs bg-purple-600/20 text-purple-400 px-2 py-1 rounded-full">Hair Spa</span>
+                        <span class="text-xs bg-slate-700 text-slate-400 px-2 py-1 rounded-full">+4 more</span>
+                    </div>
+                </div>
+
+                <div id="staff-spec-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-7.jpg" alt="Staff" class="w-12 h-12 rounded-full object-cover">
+                            <div>
+                                <h3 class="font-semibold">Anjali Reddy</h3>
+                                <p class="text-xs text-slate-400">Makeup Artist</p>
+                            </div>
+                        </div>
+                        <button class="text-violet-400 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-pink-600/20 text-pink-400 px-2 py-1 rounded-full">Bridal Makeup</span>
+                        <span class="text-xs bg-rose-600/20 text-rose-400 px-2 py-1 rounded-full">Party Makeup</span>
+                        <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full">Facials</span>
+                        <span class="text-xs bg-slate-700 text-slate-400 px-2 py-1 rounded-full">+3 more</span>
+                    </div>
+                </div>
+
+                <div id="staff-spec-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" alt="Staff" class="w-12 h-12 rounded-full object-cover">
+                            <div>
+                                <h3 class="font-semibold">Vikram Singh</h3>
+                                <p class="text-xs text-slate-400">Barber</p>
+                            </div>
+                        </div>
+                        <button class="text-violet-400 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-violet-600/20 text-violet-400 px-2 py-1 rounded-full">Haircut</span>
+                        <span class="text-xs bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full">Beard Trim</span>
+                        <span class="text-xs bg-slate-700 text-slate-400 px-2 py-1 rounded-full">+2 more</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="service-analytics-section" class="space-y-3 mb-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold">Service Performance</h2>
+                <button class="text-sm text-violet-400">View Report</button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2">
+                            <i class="fa-solid fa-chart-line text-green-400 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-green-400">₹2.4L</p>
+                        <p class="text-xs text-slate-400 mt-1">Monthly Revenue</p>
+                        <span class="text-xs text-green-400 flex items-center justify-center gap-1 mt-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            18% vs last month
+                        </span>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-full bg-violet-600/20 flex items-center justify-center mx-auto mb-2">
+                            <i class="fa-solid fa-calendar-check text-violet-400 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-violet-400">487</p>
+                        <p class="text-xs text-slate-400 mt-1">Total Bookings</p>
+                        <span class="text-xs text-green-400 flex items-center justify-center gap-1 mt-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            12% vs last month
+                        </span>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-2">
+                            <i class="fa-solid fa-star text-amber-400 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-amber-400">4.8</p>
+                        <p class="text-xs text-slate-400 mt-1">Avg Rating</p>
+                        <span class="text-xs text-green-400 flex items-center justify-center gap-1 mt-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            0.2 improvement
+                        </span>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-2">
+                            <i class="fa-solid fa-trophy text-blue-400 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-blue-400">8</p>
+                        <p class="text-xs text-slate-400 mt-1">Top Services</p>
+                        <span class="text-xs text-slate-400 flex items-center justify-center gap-1 mt-1">
+                            Above 50 bookings
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-navigation" class="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 max-w-md mx-auto">
+        <div class="flex items-center justify-around py-2">
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-house text-xl"></i>
+                <span class="text-xs">Home</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-calendar text-xl"></i>
+                <span class="text-xs">Calendar</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 -mt-8">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/50">
+                    <i class="fa-solid fa-plus text-white text-2xl"></i>
+                </div>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-users text-xl"></i>
+                <span class="text-xs">Clients</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-violet-400">
+                <i class="fa-solid fa-ellipsis text-xl"></i>
+                <span class="text-xs">More</span>
+            </button>
+        </div>
+    </nav>
+
+    <button id="fab-add-service" class="fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full shadow-lg shadow-violet-500/50 flex items-center justify-center active:scale-95 transition-transform">
+        <i class="fa-solid fa-plus text-white text-xl"></i>
+    </button>
+
+</div>
+
+<div id="add-service-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-end max-w-md mx-auto">
+    <div class="bg-slate-800 rounded-t-3xl w-full p-6 space-y-4 animate-slide-up">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Add New Service</h2>
+            <button id="close-modal" class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-white"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Service Name</label>
+                <input type="text" placeholder="e.g., Premium Haircut" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600">
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Category</label>
+                <select class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-600">
+                    <option>Hair Services</option>
+                    <option>Makeup Services</option>
+                    <option>Spa & Wellness</option>
+                    <option>Nail Services</option>
+                    <option>Skin Care</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-sm text-slate-400 mb-2 block">Duration (min)</label>
+                    <input type="number" placeholder="45" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600">
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 mb-2 block">Price (₹)</label>
+                    <input type="number" placeholder="800" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Description</label>
+                <textarea rows="3" placeholder="Service description..." class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600"></textarea>
+            </div>
+
+            <button class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-3 rounded-lg font-semibold active:scale-95 transition-transform">
+                <i class="fa-solid fa-plus mr-2"></i>
+                Create Service
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('fab-add-service').addEventListener('click', function() {
+    document.getElementById('add-service-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-modal').addEventListener('click', function() {
+    document.getElementById('add-service-modal').classList.add('hidden');
+});
+
+document.getElementById('add-service-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.add('hidden');
+    }
+});
+</script>
+
+</body>
+</html>

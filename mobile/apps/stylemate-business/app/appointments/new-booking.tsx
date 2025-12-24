@@ -5,27 +5,9 @@ import { useState, useMemo } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { format, addDays, isSameDay } from 'date-fns';
 import { useClients, useServices, useStaff, businessApi } from '@stylemate/core';
+import { COLORS, GRADIENTS } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
-
-const COLORS = {
-  background: '#0F172A',
-  cardBg: '#1E293B',
-  cardBorder: '#334155',
-  textPrimary: '#F8FAFC',
-  textSecondary: '#94A3B8',
-  textMuted: '#64748B',
-  violet: '#8B5CF6',
-  fuchsia: '#D946EF',
-  green: '#22C55E',
-  amber: '#F59E0B',
-  blue: '#3B82F6',
-  red: '#EF4444',
-  pink: '#EC4899',
-  cyan: '#06B6D4',
-  orange: '#F97316',
-  purple: '#A855F7',
-};
 
 interface Client {
   id: string;

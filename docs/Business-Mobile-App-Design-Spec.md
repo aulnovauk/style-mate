@@ -12,6 +12,167 @@ This document outlines the mobile UI screen designs for the Stylemate Business M
 
 ---
 
+## Development Status Checklist
+
+*Last Updated: December 24, 2025 - Packages Management screens completed (Packages List, Add/Edit Package)*
+
+### Legend
+- ✅ **Developed** - Screen is implemented and functional
+- 🔄 **Partial** - Screen exists but missing some features
+- ❌ **Not Started** - Screen needs to be developed
+
+### Authentication Flow
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Phone Login Screen | ❌ Not Started | - | Entry point for business users |
+| OTP Verification | ❌ Not Started | - | 6-digit code verification |
+| Registration Screen | ❌ Not Started | - | New user signup with PAN/GST |
+| Salon Selection | ❌ Not Started | - | Multi-location switcher |
+
+### Main Tab Screens
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Dashboard Overview (Home) | ✅ Developed | `app/(tabs)/index.tsx` | KPIs, quick actions, appointments |
+| Booking Calendar | ✅ Developed | `app/(tabs)/calendar.tsx` | Day/Week/Month views with staff filter |
+| Client List | ✅ Developed | `app/(tabs)/clients.tsx` | Search, filter by VIP/New |
+| Team List | ✅ Developed | `app/(tabs)/team.tsx` | Staff status, appointments count |
+| More Features Hub | 🔄 Partial | `app/(tabs)/more.tsx` | Menu structure only, links not wired |
+
+### Appointment Management
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Appointment Details | ✅ Developed | `app/appointments/[id].tsx` | Client, services, payment, actions |
+| New Booking | ✅ Developed | `app/appointments/new-booking.tsx` | Multi-step booking wizard |
+| Walk-in/Front Desk | ✅ Developed | `app/appointments/walk-in.tsx` | Quick check-in flow |
+| Waitlist Management | ✅ Developed | `app/appointments/waitlist.tsx` | Queue and priority management, filtering, notify clients |
+| Checkout/POS | ✅ Developed | `app/appointments/checkout.tsx` | Payment processing, cart, discounts, tips, receipts |
+
+### Client Management
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Client Profile (360 View) | ✅ Developed | `app/clients/[id].tsx` | Stats, preferences, visit history |
+| Add/Edit Client | ✅ Developed | `app/clients/add-edit.tsx` | Zod validation, phone formatting, marketing preferences, preferred staff |
+| Client Import Status | ✅ Developed | `app/clients/import.tsx` | Fresha-style CSV upload, column mapping, preview, error handling, duplicate detection |
+| Campaign Assignment | ✅ Developed | `app/clients/campaign-assignment.tsx` | Campaign selection, client assignment, search/filter, bulk select |
+
+### Team Management
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Staff Profile | ✅ Developed | `app/team/[id].tsx` | Schedule, services, performance tabs |
+| Add/Edit Staff | ✅ Developed | `app/team/add-edit.tsx` | Zod validation, role selection, specialties, compensation settings |
+| Staff Schedule | ✅ Developed | `app/team/schedule.tsx` | Day/week views, sweep-line timeline, block time management |
+| Leave Management | ✅ Developed | `app/team/leave.tsx` | Balance tracking, approve/reject flow with notes |
+| Commissions | ✅ Developed | `app/team/commissions.tsx` | Summary/detail views, payout processing, export functionality |
+
+### Payroll
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Payroll Overview | ❌ Not Started | - | Monthly payroll summary |
+| Payroll Run Wizard | ❌ Not Started | - | Step-by-step payroll processing |
+| Staff Payout Details | ❌ Not Started | - | Individual staff earnings |
+
+### Services & Products
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Services Management | ✅ Developed | `app/services/index.tsx` | Service catalog with category filtering, stats cards (Active/Inactive/Featured), search, collapsible sections, toggle status, duplicate service |
+| Add/Edit Service | ✅ Developed | `app/services/add-edit.tsx` | Zod validation, category/gender/price type, duration chips, staff assignment, duplicate support |
+| Packages List | ✅ Developed | `app/packages/index.tsx` | Package catalog with stats, search, status filter chips, toggle active/inactive, duplicate package |
+| Add/Edit Package | ✅ Developed | `app/packages/add-edit.tsx` | 3-step wizard: Details → Select Services → Pricing with 4 pricing types, Extra Time Modal, premium package support |
+| Memberships List | ❌ Not Started | `app/memberships/index.tsx` | Fresha-inspired: Plans/Members/Analytics tabs, color-coded plan types, online sales/redemption status |
+| Add/Edit Membership | ❌ Not Started | `app/memberships/add-edit.tsx` | 4-step wizard: Type → Details → Payment → Review with Fresha patterns |
+| Membership Members | ❌ Not Started | `app/memberships/members.tsx` | Fresha-inspired: Pause/Resume/Cancel lifecycle, session tracking, bulk actions |
+| Product/Inventory | ❌ Not Started | - | Stock levels and reordering |
+
+### Analytics & Reports
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Analytics Dashboard | ❌ Not Started | - | Revenue, metrics, charts |
+| Detailed Reports | ❌ Not Started | - | Exportable business reports |
+| ML Predictions | ❌ Not Started | - | AI-powered insights |
+
+### Communication
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Chat Inbox | ❌ Not Started | - | Customer messaging center |
+| Chat Conversation | ❌ Not Started | - | Individual chat thread |
+| Notifications | ❌ Not Started | - | Alert list and preferences |
+
+### Marketing
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Promotions/Offers | ❌ Not Started | - | Discount management |
+| Marketing Campaigns | ❌ Not Started | - | Campaign creation and tracking |
+| Events Hub | ❌ Not Started | - | Event management |
+
+### Settings
+| Screen | Status | File Path | Notes |
+|--------|--------|-----------|-------|
+| Settings Hub | ❌ Not Started | - | Main settings menu |
+| Business Information | ❌ Not Started | - | Salon profile and details |
+| Working Hours | ❌ Not Started | - | Operating schedule |
+| Booking Rules | ❌ Not Started | - | Advance booking, cancellation policy |
+| Payment Methods | ❌ Not Started | - | Payment gateway settings |
+| Access Control/RBAC | ❌ Not Started | - | Staff permissions |
+
+### Summary Statistics
+| Category | Developed | Partial | Not Started | Total |
+|----------|-----------|---------|-------------|-------|
+| Authentication | 0 | 0 | 4 | 4 |
+| Main Tabs | 4 | 1 | 0 | 5 |
+| Appointments | 5 | 0 | 0 | 5 |
+| Clients | 4 | 0 | 0 | 4 |
+| Team | 5 | 0 | 0 | 5 |
+| Payroll | 0 | 0 | 3 | 3 |
+| Services & Products | 4 | 0 | 4 | 8 |
+| Analytics | 0 | 0 | 3 | 3 |
+| Communication | 0 | 0 | 3 | 3 |
+| Marketing | 0 | 0 | 3 | 3 |
+| Settings | 0 | 0 | 6 | 6 |
+| **TOTAL** | **22** | **1** | **26** | **49** |
+
+**Development Progress: ~47% Complete (23/49 screens)**
+
+### Fully Implemented Screens
+
+The following 22 screens are fully implemented with production-level code:
+
+**Main Tabs (4 screens):**
+1. Dashboard Overview (Home) - `app/(tabs)/index.tsx`
+2. Booking Calendar - `app/(tabs)/calendar.tsx`
+3. Client List - `app/(tabs)/clients.tsx`
+4. Team List - `app/(tabs)/team.tsx`
+
+**Appointments (5 screens):**
+5. Appointment Details - `app/appointments/[id].tsx`
+6. New Booking - `app/appointments/new-booking.tsx`
+7. Walk-in/Front Desk - `app/appointments/walk-in.tsx`
+8. Waitlist Management - `app/appointments/waitlist.tsx`
+9. Checkout/POS - `app/appointments/checkout.tsx`
+
+**Clients (4 screens):**
+10. Client Profile (360 View) - `app/clients/[id].tsx`
+11. Add/Edit Client - `app/clients/add-edit.tsx`
+12. Client Import - `app/clients/import.tsx`
+13. Campaign Assignment - `app/clients/campaign-assignment.tsx`
+
+**Team (5 screens):**
+14. Staff Profile - `app/team/[id].tsx`
+15. Add/Edit Staff - `app/team/add-edit.tsx`
+16. Staff Schedule - `app/team/schedule.tsx`
+17. Leave Management - `app/team/leave.tsx`
+18. Commissions - `app/team/commissions.tsx`
+
+**Services & Products (4 screens):**
+19. Services Management - `app/services/index.tsx`
+20. Add/Edit Service - `app/services/add-edit.tsx`
+21. Packages List - `app/packages/index.tsx`
+22. Add/Edit Package - `app/packages/add-edit.tsx`
+
+**Partial Implementation (1 screen):**
+- More Features Hub - `app/(tabs)/more.tsx` (menu structure only)
+
+---
+
 ## Design System
 
 ### Brand Colors
@@ -1146,6 +1307,1201 @@ App
 │                                         │
 └─────────────────────────────────────────┘
 ```
+
+---
+
+### 10a. Packages List
+
+**Purpose:** View and manage service bundles/combo packages with discounted pricing
+
+**File Path:** `app/packages/index.tsx`
+
+**Layout:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back        Packages           ➕ Add │
+├─────────────────────────────────────────┤
+│                                         │
+│  Stats Overview                         │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │ Total   │ │ Active  │ │ Revenue │   │
+│  │   12    │ │    8    │ │ ₹45.2K  │   │
+│  │ Packages│ │ [filter]│ │ This Mo │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
+│                                         │
+│  🔍 Search packages...                  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🎁 Ultimate Pampering Package    │  │
+│  │                                   │  │
+│  │ Haircut + Facial + Manicure      │  │
+│  │ ⏱️ 150 min • 3 services          │  │
+│  │                                   │  │
+│  │ ₹1,800  ₹2,300  [22% OFF]        │  │
+│  │ (package) (regular)   🟢 Active   │  │
+│  │                                   │  │
+│  │ 📊 32 sold this month            │  │
+│  │                                   │  │
+│  │ [Edit] [Toggle] [···]            │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🎁 Men's Grooming Special        │  │
+│  │                                   │  │
+│  │ Haircut + Beard + Face Massage   │  │
+│  │ ⏱️ 75 min • 3 services           │  │
+│  │                                   │  │
+│  │ ₹900  ₹1,200  [25% OFF]          │  │
+│  │ (package) (regular)   🔴 Inactive│  │
+│  │                                   │  │
+│  │ 📊 18 sold this month            │  │
+│  │                                   │  │
+│  │ [Edit] [Toggle] [···]            │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  [Load More...]                         │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Key Features:**
+- Stats cards with tap-to-filter (Active/Inactive)
+- Search with debounce
+- Package cards showing: name, included services, duration, price comparison, savings badge
+- Sold count for popularity tracking
+- Quick toggle for active/inactive status
+- More menu (···) for duplicate, share, delete actions
+- Pull-to-refresh
+- Empty state with illustration
+
+**API Endpoints:**
+- GET `/api/salons/:id/packages` - List all packages
+- PATCH `/api/salons/:id/packages/:pkgId/toggle` - Toggle active status
+- DELETE `/api/salons/:id/packages/:pkgId` - Delete package
+
+---
+
+### 10b. Add/Edit Package (3-Step Wizard)
+
+**Purpose:** Create or edit service bundles with discounted pricing
+
+**File Path:** `app/packages/add-edit.tsx`
+
+**Fresha-Inspired Improvements:**
+- Category selection for bundle organization
+- Schedule type: Sequential vs Parallel booking
+- Extra time options per service (Processing/Blocked time)
+- Tax rate configuration
+- Gender availability for online booking
+
+**Step 1: Package Details**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Cancel   Create Package       [Next] │
+├─────────────────────────────────────────┤
+│                                         │
+│  Step 1 of 3: Package Details           │
+│  ○──────────●──────────○                │
+│  Details   Services   Pricing           │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Package Name *                         │
+│  ┌───────────────────────────────────┐  │
+│  │ e.g., Ultimate Pampering Package │  │
+│  └───────────────────────────────────┘  │
+│  💡 Choose a catchy name               │
+│                                         │
+│  Description (Optional)                 │
+│  ┌───────────────────────────────────┐  │
+│  │ Describe what makes this package │  │
+│  │ special, include any policies... │  │
+│  │                                   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Category *                             │
+│  ┌───────────────────────────────────┐  │
+│  │ Select category ▼                │  │
+│  └───────────────────────────────────┘  │
+│  Organize your bundle in the catalog    │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ ✨ Pro Tip                        │  │
+│  │                                   │  │
+│  │ Great packages mix different      │  │
+│  │ service types! Try:               │  │
+│  │ • Haircut + Beard + Face Massage │  │
+│  │ • Full Body Massage + Manicure   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Step 2: Select Services & Schedule**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back    Create Package        [Next] │
+├─────────────────────────────────────────┤
+│                                         │
+│  Step 2 of 3: Select Services           │
+│  ●──────────○──────────○                │
+│  Details   Services   Pricing           │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Schedule Type *                        │
+│  How should services be performed?      │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ (●) Booked in Sequence           │  │
+│  │     Services one after another   │  │
+│  │     (single staff member)        │  │
+│  ├───────────────────────────────────┤  │
+│  │ ( ) Booked in Parallel           │  │
+│  │     Services at the same time    │  │
+│  │     (multiple staff, e.g. mani   │  │
+│  │     + pedi simultaneously)       │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Select Services (Min. 2)               │
+│                                         │
+│  🔍 Search services...                  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  💇 Hair Services                    ▼  │
+│  ┌───────────────────────────────────┐  │
+│  │ [✓] Haircut - Women          [⋯]│  │
+│  │     ⏱️ 45 min • ₹500              │  │
+│  │     + Processing: 10 min         │  │ ← Extra time added
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ [ ] Hair Coloring - Full     [⋯]│  │
+│  │     ⏱️ 120 min • ₹2,000           │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  💆 Skin Services                    ▼  │
+│  ┌───────────────────────────────────┐  │
+│  │ [✓] Classic Facial           [⋯]│  │
+│  │     ⏱️ 60 min • ₹800              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  💅 Nail Services                    ▼  │
+│  ┌───────────────────────────────────┐  │
+│  │ [✓] Manicure                 [⋯]│  │
+│  │     ⏱️ 45 min • ₹400              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌─────────────── Summary ────────────┐ │
+│  │ Selected: 3 services              │ │
+│  │ Total Duration: 160 min           │ │
+│  │ (includes 10 min processing)      │ │
+│  │ Regular Price: ₹1,700             │ │
+│  └───────────────────────────────────┘ │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Extra Time Bottom Sheet (triggered by ⋯ menu):**
+
+```
+┌─────────────────────────────────────────┐
+│          Add Extra Time                 │
+│                                         │
+│  Haircut - Women                        │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Time Type *                            │
+│  ┌───────────────────────────────────┐  │
+│  │ (●) Processing Time              │  │
+│  │     Client waits while color     │  │
+│  │     sets. Staff can take other   │  │
+│  │     bookings during this time.   │  │
+│  ├───────────────────────────────────┤  │
+│  │ ( ) Blocked Time                 │  │
+│  │     Gap between appointments for │  │
+│  │     prep, cleanup, or transition.│  │
+│  │     No other bookings allowed.   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Duration *                             │
+│  ┌───────────────────────────────────┐  │
+│  │ [10] [15] [20] [30] [45] [60]    │  │
+│  └───────────────────────────────────┘  │
+│  Or enter custom: [___] minutes         │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  [Remove Extra Time]     [Apply]        │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Step 3: Pricing & Settings**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back    Create Package      [Create] │
+├─────────────────────────────────────────┤
+│                                         │
+│  Step 3 of 3: Pricing & Settings        │
+│  ●──────────●──────────○                │
+│  Details   Services   Pricing           │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Pricing Type *                         │
+│  ┌───────────────────────────────────┐  │
+│  │ ( ) Service Pricing              │  │
+│  │     Total cost of all services   │  │
+│  │     combined (₹1,700)            │  │
+│  ├───────────────────────────────────┤  │
+│  │ (●) Custom Price                 │  │
+│  │     Set your own bundle price    │  │
+│  ├───────────────────────────────────┤  │
+│  │ ( ) Percentage Discount          │  │
+│  │     Apply % off total price      │  │
+│  ├───────────────────────────────────┤  │
+│  │ ( ) Free                         │  │
+│  │     No charge for this bundle    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌─── For "Custom Price" option ─────┐  │
+│  │                                   │  │
+│  │  Package Price (₹) *             │  │
+│  │  ┌─────────────────────────────┐ │  │
+│  │  │ ₹ │ 1,400                  │ │  │
+│  │  └─────────────────────────────┘ │  │
+│  │  Regular total: ₹1,700           │  │
+│  │                                   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌─── For "Percentage Discount" ─────┐  │
+│  │                                   │  │
+│  │  Discount Percentage *           │  │
+│  │  ┌─────────────────────────────┐ │  │
+│  │  │ [10%] [15%] [20%] [25%]    │ │  │
+│  │  └─────────────────────────────┘ │  │
+│  │  Or custom: [___]%               │  │
+│  │                                   │  │
+│  │  Final Price: ₹1,445 (15% off)  │  │
+│  │                                   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌─────── 🎉 Great Deal! ─────────────┐ │
+│  │                          [18% OFF]│ │
+│  │                                   │ │
+│  │  Regular Price:  ₹1,700̶           │ │
+│  │  Package Price:  ₹1,400           │ │
+│  │  Customer Saves: ₹300             │ │
+│  │                                   │ │
+│  └───────────────────────────────────┘ │
+│                                         │
+│  Tax Rate                               │
+│  ┌───────────────────────────────────┐  │
+│  │ 18% GST ▼                        │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Validity (Optional)                    │
+│  ┌───────────────────────────────────┐  │
+│  │ No expiry ▼                      │  │
+│  └───────────────────────────────────┘  │
+│  Options: No expiry, 30, 60, 90 days    │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Online Booking Settings                │
+│  ┌───────────────────────────────────┐  │
+│  │ Enable online booking   [toggle] │  │
+│  │ Show on Stylemate marketplace    │  │
+│  ├───────────────────────────────────┤  │
+│  │ Available for:                   │  │
+│  │ [Everyone] [Women] [Men]         │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Key Features (Enhanced with Fresha Patterns):**
+- 3-step wizard with progress indicator
+- **Category selection** for catalog organization
+- **Schedule type**: Sequential (same staff) vs Parallel (multiple staff)
+- **Extra time per service** via 3-dots menu:
+  - Processing time (staff can take other bookings)
+  - Blocked time (gap for prep/cleanup)
+- Services grouped by category with collapsible sections
+- Service search within selection
+- **4 Pricing options** (Fresha pattern):
+  - **Service Pricing**: Use combined total of all services
+  - **Custom Price**: Set a specific bundle price
+  - **Percentage Discount**: Apply % off with chip selector
+  - **Free**: No charge for promotional bundles
+- Real-time calculation: total duration (incl. extra time), regular price, savings, discount %
+- Minimum 2 services required validation
+- **Tax rate selection** for pricing
+- **Gender availability** for online booking
+- Unsaved changes warning on back navigation
+- Loading states during save
+
+**Validation Rules:**
+- Name: required, min 3 chars
+- Category: required
+- Schedule Type: required
+- Services: minimum 2 required
+- Pricing Type: required
+- Custom Price: must be > 0 and < regular price (if custom pricing selected)
+- Discount %: must be 1-99 (if percentage discount selected)
+
+**API Endpoints:**
+- GET `/api/salons/:id/services` - List services for selection
+- GET `/api/salons/:id/service-categories` - List categories
+- POST `/api/salons/:id/packages` - Create package
+- PUT `/api/salons/:id/packages/:pkgId` - Update package
+
+---
+
+### 10c. Memberships List
+
+**Purpose:** Manage recurring membership plans and view member analytics (Fresha-inspired patterns)
+
+**File Path:** `app/memberships/index.tsx`
+
+**Design Reference:** Fresha for Business App - Catalog > Memberships
+
+**Layout:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back      Memberships          ➕ Add │
+├─────────────────────────────────────────┤
+│                                         │
+│  [Plans] [Members] [Analytics]          │
+│  ════════════════════════════════       │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Quick Stats                            │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │ Active  │ │ Recurring│ │ Churn   │   │
+│  │ Members │ │ Revenue │ │ Rate    │   │
+│  │   156   │ │ ₹78.5K  │ │  4.2%   │   │
+│  │ +12 new │ │ /month  │ │ ↓2.1%   │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
+│                                         │
+├─────────────────────────────────────────┤
+│  PLANS TAB                              │
+│  Filter: [All] [One-time] [Recurring]   │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🟦 DISCOUNT                       │  │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│  │
+│  │ Gold Member                       │  │
+│  │ 15% off all services             │  │
+│  │                                   │  │
+│  │ ₹2,999 • One-time • 6 months     │  │
+│  │ 👥 45 members   📈 ₹1.35L revenue│  │
+│  │                                   │  │
+│  │ Online Sales: ✓   Redemption: ✓  │  │
+│  │ 🟢 Active        [Edit] [···]    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🟪 CREDIT/WALLET                  │  │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│  │
+│  │ Premium Wallet                    │  │
+│  │ Pay ₹2,000 → Get ₹2,400 credit   │  │
+│  │ (20% bonus)                       │  │
+│  │                                   │  │
+│  │ ₹1,999/month • Recurring         │  │
+│  │ 👥 28 members   💳 Auto-renews   │  │
+│  │                                   │  │
+│  │ Online Sales: ✓   Redemption: ✓  │  │
+│  │ 🟢 Active        [Edit] [···]    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🟩 SESSION PACKAGE                │  │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│  │
+│  │ Hair Care Club                    │  │
+│  │ Sessions included:                │  │
+│  │ • 4 Haircuts/month               │  │
+│  │ • 2 Hair Spa/month               │  │
+│  │ • Unlimited Blow Dry             │  │
+│  │                                   │  │
+│  │ ₹3,499/month • Recurring         │  │
+│  │ 👥 12 members   🔄 Renews 15th   │  │
+│  │                                   │  │
+│  │ Online Sales: ✓   Redemption: ✓  │  │
+│  │ 🟢 Active        [Edit] [···]    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🟦 DISCOUNT                       │  │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│  │
+│  │ VIP Platinum                      │  │
+│  │ 25% off all services             │  │
+│  │                                   │  │
+│  │ ₹4,999/year • One-time           │  │
+│  │ 👥 8 members    🌟 Limited: 10   │  │
+│  │                                   │  │
+│  │ Online Sales: ✗   Redemption: ✓  │  │
+│  │ ⚪ Inactive       [Edit] [···]    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Key Features (Fresha-Inspired):**
+
+**Tab Navigation:**
+- **Plans**: Catalog of all membership plans
+- **Members**: Active membership holders (separate screen 10e)
+- **Analytics**: Revenue, retention, churn metrics
+
+**Plan Type Badges (Color-coded):**
+- 🟦 **Discount Membership**: Blue - Percentage off services
+- 🟪 **Credit/Wallet**: Purple - Pre-paid credit with bonus
+- 🟩 **Session Package**: Green - Bundled sessions (like Fresha's service bundles)
+
+**Payment Model Indicators:**
+- **One-time**: Single payment, valid for set duration
+- **Recurring**: Auto-charged (weekly/monthly/quarterly/annually)
+- Show renewal cycle for recurring (e.g., "Renews 15th")
+
+**Plan Card Display:**
+- Plan type badge with color accent
+- Name and key benefit summary
+- Price + billing type + validity
+- Member count and revenue generated
+- Online sales/redemption status (✓/✗)
+- Status indicator (Active/Inactive/Paused)
+
+**More Menu (···) Actions:**
+- Duplicate plan
+- Toggle active/inactive
+- Create Flash Sale (discount on first payment)
+- View sales history
+- Delete plan
+
+**Empty State:**
+- Illustration with "Create Your First Membership"
+- Benefits callout: "Boost retention by 40%"
+- CTA: "+ Create Membership"
+
+**API Endpoints:**
+- GET `/api/salons/:id/membership-plans/manage` - List plans with stats
+- GET `/api/salons/:id/membership-analytics` - Analytics dashboard data
+- PATCH `/api/membership-plans/:planId/status` - Toggle active/inactive
+- POST `/api/membership-plans/:planId/duplicate` - Duplicate plan
+
+---
+
+### 10d. Add/Edit Membership Plan
+
+**Purpose:** Create or edit membership plans with flexible plan types (Fresha-inspired wizard)
+
+**File Path:** `app/memberships/add-edit.tsx`
+
+**Design Reference:** Fresha for Business App - Catalog > Memberships > Add
+
+**Wizard Steps Overview:**
+- **Step 1**: Plan Type Selection
+- **Step 2**: Plan Details (dynamic based on type)
+- **Step 3**: Payment & Billing
+- **Step 4**: Online Settings & Review
+
+**Step 1: Plan Type Selection**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Cancel   Create Membership    Step 1/4│
+├─────────────────────────────────────────┤
+│  ●───○───○───○  Progress                │
+├─────────────────────────────────────────┤
+│                                         │
+│  Choose Membership Type                 │
+│  How will members benefit from this     │
+│  membership?                            │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🟦 Discount Membership      [●] ←│  │
+│  │                                   │  │
+│  │ Members get a percentage discount│  │
+│  │ on all or selected services      │  │
+│  │                                   │  │
+│  │ 💡 Best for: Regular customers   │  │
+│  │ who want savings on every visit  │  │
+│  │                                   │  │
+│  │ Example: 15% off all services    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🟪 Credit/Wallet            [ ] │  │
+│  │                                   │  │
+│  │ Members pay upfront and receive  │  │
+│  │ store credit with bonus value    │  │
+│  │                                   │  │
+│  │ 💡 Best for: Pre-paid balance    │  │
+│  │ with extra value for loyalty     │  │
+│  │                                   │  │
+│  │ Example: Pay ₹2000, Get ₹2400    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🟩 Session Package          [ ] │  │
+│  │                                   │  │
+│  │ Members get a fixed number of    │  │
+│  │ sessions for specific services   │  │
+│  │                                   │  │
+│  │ 💡 Best for: Bundled treatments  │  │
+│  │ like courses or subscriptions    │  │
+│  │                                   │  │
+│  │ Example: 4 Haircuts + 2 Facials  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌─────────────────────────────────────┐│
+│  │           Continue →                ││
+│  └─────────────────────────────────────┘│
+└─────────────────────────────────────────┘
+```
+
+**Step 2: Plan Details (varies by type)**
+
+**For Discount Membership:**
+```
+┌─────────────────────────────────────────┐
+│ ← Back    Discount Details      Step 2/4│
+├─────────────────────────────────────────┤
+│  ●───●───○───○  Progress                │
+├─────────────────────────────────────────┤
+│                                         │
+│  Basic Info                             │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Membership Name *                      │
+│  ┌───────────────────────────────────┐  │
+│  │ e.g., Gold Member, VIP Club      │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Description                            │
+│  ┌───────────────────────────────────┐  │
+│  │ Explain the benefits, policies,  │  │
+│  │ and savings to customers...      │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Services & Discount                    │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Included Services *                    │
+│  ┌───────────────────────────────────┐  │
+│  │ [✓] All services                 │  │
+│  │ [ ] Select specific services     │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ⚠️ If specific services selected:     │
+│  ┌───────────────────────────────────┐  │
+│  │ [Edit] Select Services (5 chosen)│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Discount Percentage *                  │
+│  ┌───────────────────────────────────┐  │
+│  │ [ 5%] [10%] [15%] [20%] [25%]    │  │
+│  └───────────────────────────────────┘  │
+│  Or enter custom: [  15  ]%             │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Appearance                             │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Plan Color                             │
+│  ┌───────────────────────────────────┐  │
+│  │ 🔵 🟣 🟢 🟠 🔴 🟡 ⚫ [Selected]   │  │
+│  └───────────────────────────────────┘  │
+│  Color helps identify this plan         │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌─────────────────────────────────────┐│
+│  │           Continue →                ││
+│  └─────────────────────────────────────┘│
+└─────────────────────────────────────────┘
+```
+
+**For Credit/Wallet:**
+```
+┌─────────────────────────────────────────┐
+│ ← Back    Credit Details        Step 2/4│
+├─────────────────────────────────────────┤
+│  ●───●───○───○  Progress                │
+├─────────────────────────────────────────┤
+│                                         │
+│  Basic Info                             │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Membership Name *                      │
+│  ┌───────────────────────────────────┐  │
+│  │ e.g., Premium Wallet, Beauty Bank│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Description                            │
+│  ┌───────────────────────────────────┐  │
+│  │ Explain the credit value, bonus, │  │
+│  │ and how credits can be used...   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Credit Value                           │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Credit Amount (per billing cycle) *    │
+│  ┌───────────────────────────────────┐  │
+│  │ ₹ │ 2,000                        │  │
+│  └───────────────────────────────────┘  │
+│  Credit added to member's wallet        │
+│                                         │
+│  Bonus Percentage *                     │
+│  ┌───────────────────────────────────┐  │
+│  │ [10%] [15%] [20%] [25%] [30%]    │  │
+│  └───────────────────────────────────┘  │
+│  Or enter custom: [  20  ]%             │
+│                                         │
+│  ┌───────────── Live Preview ─────────┐ │
+│  │ 💰 Value Breakdown                │ │
+│  │ ─────────────────────────────────│ │
+│  │ Member pays:  ₹2,000             │ │
+│  │ Bonus (20%):  + ₹400             │ │
+│  │ ─────────────────────────────────│ │
+│  │ Total credit: ₹2,400 ✨          │ │
+│  └───────────────────────────────────┘ │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Applicable Services                    │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│  ┌───────────────────────────────────┐  │
+│  │ [●] All services                 │  │
+│  │ [ ] Select specific services     │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Appearance                             │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│  Plan Color                             │
+│  ┌───────────────────────────────────┐  │
+│  │ 🔵 🟣 🟢 🟠 🔴 🟡 ⚫ [Selected]   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌─────────────────────────────────────┐│
+│  │           Continue →                ││
+│  └─────────────────────────────────────┘│
+└─────────────────────────────────────────┘
+```
+
+**For Session Package (Fresha-style Sessions Model):**
+```
+┌─────────────────────────────────────────┐
+│ ← Back    Package Details       Step 2/4│
+├─────────────────────────────────────────┤
+│  ●───●───○───○  Progress                │
+├─────────────────────────────────────────┤
+│                                         │
+│  Basic Info                             │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Membership Name *                      │
+│  ┌───────────────────────────────────┐  │
+│  │ e.g., Hair Care Club, Glow Plan  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Description                            │
+│  ┌───────────────────────────────────┐  │
+│  │ Describe what's included and the │  │
+│  │ value members receive...         │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Services & Sessions                    │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Included Services *                    │
+│  Tap to add services with session count │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ [+] Add Service                   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ ✂️ Haircut - Women                │  │
+│  │ ─────────────────────────────────│  │
+│  │ Sessions per billing cycle:       │  │
+│  │ [1] [2] [4] [6] [8] [∞ Unlimited] │  │
+│  │ Selected: 4 sessions              │  │
+│  │                                   │  │
+│  │ Regular price: ₹500/session      │  │
+│  │ Value: ₹2,000/cycle          [🗑️]│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 💆 Hair Spa                       │  │
+│  │ ─────────────────────────────────│  │
+│  │ Sessions per billing cycle:       │  │
+│  │ [1] [2] [4] [6] [8] [∞ Unlimited] │  │
+│  │ Selected: 2 sessions              │  │
+│  │                                   │  │
+│  │ Regular price: ₹1,000/session    │  │
+│  │ Value: ₹2,000/cycle          [🗑️]│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 💨 Blow Dry                       │  │
+│  │ ─────────────────────────────────│  │
+│  │ Sessions per billing cycle:       │  │
+│  │ [1] [2] [4] [6] [8] [∞ Unlimited] │  │
+│  │ Selected: ∞ Unlimited             │  │
+│  │                                   │  │
+│  │ Regular price: ₹300/session      │  │
+│  │ Value: Unlimited             [🗑️]│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────── Value Summary ─────────┐│
+│  │ 🎉 Great Value Package!            ││
+│  │ ──────────────────────────────────│ │
+│  │ Total services value:  ₹4,300+    │ │
+│  │ (based on 4 Haircuts + 2 Spa)     │ │
+│  │                                   │ │
+│  │ 💡 Tip: Members who book weekly   │ │
+│  │ services are 60% less likely to   │ │
+│  │ cancel their membership!          │ │
+│  └───────────────────────────────────┘ │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Appearance                             │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│  Plan Color                             │
+│  ┌───────────────────────────────────┐  │
+│  │ 🔵 🟣 🟢 🟠 🔴 🟡 ⚫ [Selected]   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌─────────────────────────────────────┐│
+│  │           Continue →                ││
+│  └─────────────────────────────────────┘│
+└─────────────────────────────────────────┘
+```
+
+**Step 3: Payment & Billing (Fresha-inspired)**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back    Payment & Billing     Step 3/4│
+├─────────────────────────────────────────┤
+│  ●───●───●───○  Progress                │
+├─────────────────────────────────────────┤
+│                                         │
+│  Payment Type *                         │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ [●] One-time Payment              │  │
+│  │     Client pays once upfront      │  │
+│  │     Redeem over validity period   │  │
+│  │                                   │  │
+│  │ [ ] Recurring Payments            │  │
+│  │     Auto-charged on renewal date  │  │
+│  │     Sessions renew each cycle     │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ⚠️ FOR ONE-TIME PAYMENT:              │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Membership Price *                     │
+│  ┌───────────────────────────────────┐  │
+│  │ ₹ │ 2,999                        │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Validity Period *                      │
+│  ┌───────────────────────────────────┐  │
+│  │ [1 mo] [3 mo] [6 mo] [12 mo]     │  │
+│  └───────────────────────────────────┘  │
+│  Or custom: [  6  ] months              │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ⚠️ FOR RECURRING PAYMENTS:            │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  Payment Frequency *                    │
+│  ┌───────────────────────────────────┐  │
+│  │ [Weekly] [Monthly] [Quarterly]   │  │
+│  │ [Every 6 months] [Annually]      │  │
+│  └───────────────────────────────────┘  │
+│  Selected: Monthly                      │
+│                                         │
+│  Price per Cycle *                      │
+│  ┌───────────────────────────────────┐  │
+│  │ ₹ │ 1,999                  /month│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Membership Length *                    │
+│  ┌───────────────────────────────────┐  │
+│  │ [3 mo] [6 mo] [12 mo] [Ongoing]  │  │
+│  └───────────────────────────────────┘  │
+│  Ongoing: Renews until cancelled        │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Tax Rate *                             │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│  ┌───────────────────────────────────┐  │
+│  │ 18% GST ▼                        │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Max Members (Optional)            │  │
+│  │ [  Unlimited  ▼]                 │  │
+│  │ Limit to create exclusivity      │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌─────────────────────────────────────┐│
+│  │           Continue →                ││
+│  └─────────────────────────────────────┘│
+└─────────────────────────────────────────┘
+```
+
+**Step 4: Online Settings & Review (Fresha-inspired)**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back    Review & Create       Step 4/4│
+├─────────────────────────────────────────┤
+│  ●───●───●───●  Progress                │
+├─────────────────────────────────────────┤
+│                                         │
+│  Online Settings                        │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Enable online sales     [🔘 ON]  │  │
+│  │ Allow clients to purchase this   │  │
+│  │ membership from your booking     │  │
+│  │ website and marketplace          │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Enable online redemption[🔘 ON]  │  │
+│  │ Allow members to book services   │  │
+│  │ using their membership online    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Terms & Conditions                     │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│  ┌───────────────────────────────────┐  │
+│  │ Add any rules, policies, or      │  │
+│  │ cancellation terms...            │  │
+│  │                                   │  │
+│  │ Example: Sessions expire at end  │  │
+│  │ of billing cycle. No refunds for │  │
+│  │ unused sessions.                 │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌─────────── Plan Summary ──────────┐  │
+│  │                                   │  │
+│  │ 🟦 Discount Membership            │  │
+│  │ ─────────────────────────────────│  │
+│  │ Gold Member                       │  │
+│  │                                   │  │
+│  │ ✓ 15% discount on all services  │  │
+│  │ ✓ Valid for 6 months            │  │
+│  │ ✓ Price: ₹2,999 (one-time)      │  │
+│  │ ✓ Tax: 18% GST included         │  │
+│  │                                   │  │
+│  │ 🌐 Online sales: Enabled         │  │
+│  │ 🔄 Online redemption: Enabled    │  │
+│  │                                   │  │
+│  │ 🎨 Plan color: 🔵 Blue           │  │
+│  │                                   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌─────────────────────────────────────┐│
+│  │   ∇∇∇  Create Membership  ∇∇∇      ││
+│  └─────────────────────────────────────┘│
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Key Features (Fresha-Inspired):**
+- **4-step wizard** with progress indicator
+- **Plan type selection** with visual cards, examples, and best-for descriptions
+- **Dynamic form fields** based on selected plan type:
+  - Discount: % off, service selection, color
+  - Credit/Wallet: Credit amount, bonus %, live value preview
+  - Session Package: Services with session counts (1/2/4/6/8/unlimited)
+- **Two payment models** (Fresha pattern):
+  - One-time: Pay upfront, redeem over validity period
+  - Recurring: Auto-charged weekly/monthly/quarterly/annually
+- **Payment frequency options** for recurring: Weekly, Monthly, Quarterly, 6-monthly, Annually
+- **Membership length options**: 3/6/12 months or "Ongoing" (renews until cancelled)
+- **Color customization** for visual identification in catalog
+- **Online sales/redemption toggles** (Fresha pattern)
+- **Terms & conditions** text area with example template
+- **Summary review** before creation with all key details
+- **Tax rate selection** with GST support
+- **Max members limit** for exclusivity
+
+**Validation Rules:**
+- Name: required, min 3 characters
+- Plan type: required
+- Payment type: required (one-time or recurring)
+- Price: required, > 0
+- Validity/Duration: required for one-time, 1-36 months
+- Payment frequency: required for recurring
+- Membership length: required for recurring (or "Ongoing")
+- Discount %: 1-50% for discount plans
+- Credit amount: required for credit/wallet plans, > 0
+- Bonus %: 0-50% for credit/wallet plans
+- Included services: min 1 for session package plans
+- Sessions: at least 1 or unlimited per service
+
+**API Endpoints:**
+- POST `/api/salons/:id/membership-plans` - Create plan
+- PUT `/api/membership-plans/:planId` - Update plan
+- GET `/api/salons/:id/services` - List services for selection
+- GET `/api/salons/:id/tax-rates` - List available tax rates
+
+**Fresha-Inspired UX Patterns:**
+- Live value preview for Credit/Wallet plans
+- Session chip selectors (1/2/4/6/8/∞)
+- Pro tips and retention statistics in Package builder
+- Clear payment frequency labels (e.g., "/month")
+- Ongoing subscription option for recurring plans
+- Flash sale integration for promotional discounts
+
+---
+
+### 10e. Membership Members (Fresha-Inspired)
+
+**Purpose:** View and manage active membership holders with full lifecycle management
+
+**File Path:** `app/memberships/members.tsx`
+
+**Design Reference:** Fresha for Business App - Sales > Memberships Sold
+
+**Layout:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back        Members            🔍 📤  │
+├─────────────────────────────────────────┤
+│                                         │
+│  Quick Stats                            │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │ Total   │ │ Active  │ │ Expiring│   │
+│  │  186    │ │  156    │ │   12    │   │
+│  │ members │ │ 📈 +8%  │ │ this wk │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Filter by Plan                         │
+│  [All] [🟦Gold] [🟪Wallet] [🟩Club]     │
+│                                         │
+│  Filter by Status                       │
+│  [All] [Active] [Expiring] [Paused]     │
+│  [Expired] [Cancelled]                  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  🟢 ACTIVE (156)                        │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 👤 Priya Sharma                  │  │
+│  │    📱 9876543210                 │  │
+│  │    ─────────────────────────────│  │
+│  │    🟦 Gold Member (Discount)     │  │
+│  │    15% off all services          │  │
+│  │                                   │  │
+│  │    📅 Valid until: Jun 23, 2026  │  │
+│  │    💰 Purchased: ₹2,999          │  │
+│  │    🔄 Payment: One-time          │  │
+│  │                                   │  │
+│  │    🟢 Active                      │  │
+│  │                                   │  │
+│  │    [View Profile]   [⋮ Actions]  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 👤 Rahul Verma                   │  │
+│  │    📱 9123456780                 │  │
+│  │    ─────────────────────────────│  │
+│  │    🟪 Premium Wallet (Credit)    │  │
+│  │                                   │  │
+│  │    💳 Balance: ₹3,400 remaining  │  │
+│  │    📅 Renews: Jan 15, 2026       │  │
+│  │    🔄 Payment: ₹1,999/month      │  │
+│  │                                   │  │
+│  │    🟡 Expiring in 7 days         │  │
+│  │                                   │  │
+│  │    [View Profile]   [⋮ Actions]  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 👤 Anjali Patel                  │  │
+│  │    📱 9988776655                 │  │
+│  │    ─────────────────────────────│  │
+│  │    🟩 Hair Care Club (Sessions)  │  │
+│  │                                   │  │
+│  │    📊 Sessions remaining (cycle):│  │
+│  │    ✂️ Haircut: 2/4 left         │  │
+│  │    💆 Hair Spa: 1/2 left        │  │
+│  │    💨 Blow Dry: Unlimited ∞     │  │
+│  │                                   │  │
+│  │    📅 Renews: Jan 1, 2026        │  │
+│  │    🔄 Payment: ₹3,499/month      │  │
+│  │                                   │  │
+│  │    🟢 Active                      │  │
+│  │                                   │  │
+│  │    [View Profile]   [⋮ Actions]  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ⏸️ PAUSED (5)                          │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 👤 Meera Kapoor                  │  │
+│  │    📱 9876512340                 │  │
+│  │    ─────────────────────────────│  │
+│  │    🟦 Gold Member (Discount)     │  │
+│  │                                   │  │
+│  │    ⏸️ Paused since: Dec 10, 2025 │  │
+│  │    📝 Reason: Customer request   │  │
+│  │                                   │  │
+│  │    [Resume]    [View]  [⋮]       │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  🔴 EXPIRED (18)                        │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 👤 Vikram Singh                  │  │
+│  │    📱 9012345678                 │  │
+│  │    ─────────────────────────────│  │
+│  │    🟦 Gold Member (Discount)     │  │
+│  │                                   │  │
+│  │    ❌ Expired: Nov 30, 2025      │  │
+│  │    📊 Total savings: ₹4,500      │  │
+│  │                                   │  │
+│  │    [🔄 Renew]   [View]   [⋮]     │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  [Load More...]                         │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Actions Menu (⋮) - Fresha-Inspired:**
+```
+┌───────────────────────────────────┐
+│ Member Actions                    │
+├───────────────────────────────────┤
+│ 👁️ View Profile                  │
+│ 📊 View Booking History           │
+│ ───────────────────────────────── │
+│ ⏸️ Pause Membership               │
+│    Keep plan, stop billing        │
+│ ▶️ Resume Membership              │
+│    Reactivate paused membership   │
+│ ───────────────────────────────── │
+│ 🔄 Renew Membership               │
+│    Extend or restart              │
+│ 📧 Send Reminder                  │
+│    Notify about expiry/renewal    │
+│ ───────────────────────────────── │
+│ ❌ Cancel Membership              │
+│    Stop all future renewals       │
+│    ⚠️ Cannot be undone           │
+└───────────────────────────────────┘
+```
+
+**Key Features (Fresha-Inspired):**
+
+**Quick Stats Header:**
+- Total members count
+- Active members with growth indicator
+- Expiring this week count (urgent action needed)
+
+**Member Card Display by Plan Type:**
+- **Discount**: Valid until date, purchase price, payment type
+- **Credit/Wallet**: Balance remaining, renewal date, price/cycle
+- **Session Package**: Sessions used/remaining per service, renewal date
+
+**Status-Based Grouping:**
+- 🟢 **Active**: Currently valid and usable
+- 🟡 **Expiring**: Within 7 days of expiration (urgent)
+- ⏸️ **Paused**: Temporarily stopped (Fresha pattern)
+- 🔴 **Expired**: Past validity, show total savings achieved
+- ❌ **Cancelled**: Terminated (cannot reactivate - Fresha rule)
+
+**Lifecycle Actions (Fresha Pattern):**
+- **Pause**: Stop billing while keeping plan (can resume)
+- **Resume**: Reactivate paused membership
+- **Renew**: Extend or restart expired membership
+- **Cancel**: Permanently stop (with confirmation warning)
+- **Send Reminder**: Email/SMS about renewal
+
+**Bulk Actions (Export button 📤):**
+- Export to Excel (all members or filtered)
+- Send bulk renewal reminders
+- Generate membership report
+
+**Filter Chips:**
+- Color-coded plan type badges
+- Multiple status filters (can select multiple)
+- Search by name, phone, email
+
+**API Endpoints:**
+- GET `/api/salons/:id/members` - List members with filters and stats
+- GET `/api/salons/:id/members/export` - Export to Excel
+- PATCH `/api/memberships/:id/pause` - Pause membership
+- PATCH `/api/memberships/:id/resume` - Resume paused membership
+- PATCH `/api/memberships/:id/cancel` - Cancel membership (irreversible)
+- POST `/api/memberships/:id/renew` - Renew expired membership
+- POST `/api/memberships/:id/send-reminder` - Send renewal reminder
 
 ---
 

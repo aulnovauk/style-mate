@@ -60,6 +60,11 @@ export default function MoreScreen() {
           </TouchableOpacity>
         </View>
 
+        <MenuSection title="Quick Actions">
+          <MenuItem icon="⏰" label="Waitlist" subtitle="Manage customer queue" onPress={() => router.push('/appointments/waitlist')} />
+          <MenuItem icon="💳" label="Checkout" subtitle="Process payments" onPress={() => router.push('/appointments/checkout')} />
+        </MenuSection>
+
         <MenuSection title="Business">
           <MenuItem icon="📊" label="Analytics" subtitle="Revenue & insights" onPress={() => {}} />
           <MenuItem icon="📦" label="Inventory" subtitle="Stock management" onPress={() => {}} />

@@ -80,6 +80,33 @@ export default function RootLayout() {
                 headerTintColor: '#F8FAFC',
               }} 
             />
+            <Stack.Screen 
+              name="clients/add-edit" 
+              options={{ 
+                headerShown: true,
+                title: 'Add Client',
+                headerStyle: { backgroundColor: '#0F172A' },
+                headerTintColor: '#F8FAFC',
+              }} 
+            />
+            <Stack.Screen 
+              name="clients/import" 
+              options={{ 
+                headerShown: true,
+                title: 'Import Clients',
+                headerStyle: { backgroundColor: '#0F172A' },
+                headerTintColor: '#F8FAFC',
+              }} 
+            />
+            <Stack.Screen 
+              name="clients/campaign-assignment" 
+              options={{ 
+                headerShown: true,
+                title: 'Campaign Assignment',
+                headerStyle: { backgroundColor: '#0F172A' },
+                headerTintColor: '#F8FAFC',
+              }} 
+            />
           </Stack>
         </QueryClientProvider>
       </SafeAreaProvider>

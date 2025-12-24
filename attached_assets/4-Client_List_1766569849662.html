@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        violet: {
+                            600: '#8B5CF6',
+                        },
+                        fuchsia: {
+                            500: '#D946EF',
+                        },
+                        slate: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>::-webkit-scrollbar { display: none;}</style>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+
+<div id="mobile-container" class="max-w-md mx-auto bg-slate-900 min-h-screen relative pb-20">
+
+    <header id="clients-header" class="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                    <i class="fa-solid fa-scissors text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold">Glamour Studio</h1>
+                    <p class="text-xs text-slate-400">Downtown Branch</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="relative">
+                    <i class="fa-solid fa-bell text-slate-400 text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full text-xs flex items-center justify-center">3</span>
+                </button>
+                <button>
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-slate-700">
+                </button>
+            </div>
+        </div>
+        
+        <div class="px-4 pb-3">
+            <div class="relative">
+                <input type="text" id="search-input" placeholder="Search by name, phone, email..." class="w-full bg-slate-800 rounded-lg px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <button id="voice-search" class="absolute right-4 top-1/2 -translate-y-1/2">
+                    <i class="fa-solid fa-microphone text-slate-500"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="clients-main" class="px-4 py-4 space-y-4">
+
+        <section id="client-stats-section" class="space-y-3">
+            <div class="grid grid-cols-3 gap-3">
+                <div id="total-clients-card" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-users text-white text-lg"></i>
+                        </div>
+                        <p class="text-2xl font-bold">342</p>
+                        <p class="text-xs text-slate-400 mt-1">Total</p>
+                    </div>
+                </div>
+
+                <div id="active-clients-card" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-user-check text-green-400 text-lg"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-green-400">285</p>
+                        <p class="text-xs text-slate-400 mt-1">Active</p>
+                    </div>
+                </div>
+
+                <div id="new-clients-card" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-user-plus text-blue-400 text-lg"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-blue-400">18</p>
+                        <p class="text-xs text-slate-400 mt-1">This Week</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="filter-section" class="space-y-3">
+            <div class="flex items-center gap-2 overflow-x-auto pb-2">
+                <button id="filter-all" class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-users text-sm"></i>
+                    All Clients
+                </button>
+                <button id="filter-vip" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2 border border-slate-700 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-crown text-amber-400 text-sm"></i>
+                    VIP
+                </button>
+                <button id="filter-regular" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2 border border-slate-700 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-repeat text-green-400 text-sm"></i>
+                    Regular
+                </button>
+                <button id="filter-new" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2 border border-slate-700 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-sparkles text-blue-400 text-sm"></i>
+                    New
+                </button>
+                <button id="filter-inactive" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2 border border-slate-700 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-clock text-slate-400 text-sm"></i>
+                    Inactive
+                </button>
+            </div>
+        </section>
+
+        <section id="sort-filter-actions" class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <button id="sort-button" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium flex items-center gap-2 border border-slate-700 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-arrow-down-wide-short text-violet-400"></i>
+                    Sort By
+                </button>
+                <button id="advanced-filter-button" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-medium flex items-center gap-2 border border-slate-700 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-filter text-violet-400"></i>
+                    Filters
+                </button>
+            </div>
+            <button id="view-toggle" class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">
+                <i class="fa-solid fa-grip text-slate-400"></i>
+            </button>
+        </section>
+
+        <section id="quick-actions-clients" class="space-y-3">
+            <div class="bg-gradient-to-r from-violet-600/20 to-fuchsia-500/20 rounded-xl p-4 border border-violet-500/30">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold text-sm mb-1">Add New Client</h3>
+                        <p class="text-xs text-slate-300">Build your client database</p>
+                    </div>
+                    <button class="w-12 h-12 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full flex items-center justify-center shadow-lg shadow-violet-500/50 active:scale-95 transition-transform">
+                        <i class="fa-solid fa-plus text-white text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="alphabet-index" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Client Directory</h2>
+                <span class="text-sm text-slate-400">342 clients</span>
+            </div>
+            <div class="flex items-center gap-1 overflow-x-auto pb-2">
+                <button class="w-8 h-8 bg-violet-600 text-white rounded-lg text-xs font-semibold flex items-center justify-center active:scale-95 transition-transform">A</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">B</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">C</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">D</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">E</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">F</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">G</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">H</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">I</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">J</button>
+                <button class="w-8 h-8 bg-slate-800 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center border border-slate-700 active:scale-95 transition-transform">K</button>
+            </div>
+        </section>
+
+        <section id="client-list-section" class="space-y-3">
+            <div class="space-y-3">
+                <div id="client-item-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-crown text-white text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Aarti Sharma</h3>
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full whitespace-nowrap">Active</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43210</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        42 visits
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹52,400
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">4.9</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+                <div id="client-item-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-check text-white text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Amit Patel</h3>
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full whitespace-nowrap">Active</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43211</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        28 visits
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹22,400
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">5.0</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+                <div id="client-item-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-6.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-sparkles text-white text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Ananya Desai</h3>
+                                    <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full whitespace-nowrap">New</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43212</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        2 visits
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹3,200
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">4.8</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+                <div id="client-item-4" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-7.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-crown text-white text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Anjali Reddy</h3>
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full whitespace-nowrap">Active</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43213</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        56 visits
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹84,200
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">4.9</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+                <div id="client-item-5" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-slate-600 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-clock text-slate-400 text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Arjun Mehta</h3>
+                                    <span class="text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded-full whitespace-nowrap">Inactive</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43214</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        12 visits
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹9,600
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">4.7</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+                <div id="client-item-6" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-9.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-check text-white text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Aryan Singh</h3>
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full whitespace-nowrap">Active</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43215</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        18 visits
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹14,400
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">4.6</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+                <div id="client-item-7" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-sparkles text-white text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Avani Kapoor</h3>
+                                    <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full whitespace-nowrap">New</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43216</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        1 visit
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹1,800
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">5.0</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+                <div id="client-item-8" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="relative">
+                                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                                <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                    <i class="fa-solid fa-check text-white text-xs"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-semibold text-sm truncate">Aditya Verma</h3>
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full whitespace-nowrap">Active</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                    <i class="fa-solid fa-phone text-xs"></i>
+                                    <span>+91 98765 43217</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                        24 visits
+                                    </span>
+                                    <span class="text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                        ₹19,200
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <span class="text-xs text-slate-300 font-semibold">4.8</span>
+                            </div>
+                            <button class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center active:scale-95 transition-transform">
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-phone"></i>
+                            Call
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-message"></i>
+                            Message
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            Book
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="load-more-section" class="py-4">
+            <button class="w-full bg-slate-800 text-slate-300 py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 border border-slate-700 active:scale-95 transition-transform">
+                <i class="fa-solid fa-arrow-down"></i>
+                Load More Clients
+            </button>
+        </section>
+
+        <section id="bulk-actions-section" class="space-y-3 mb-6">
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <h3 class="font-semibold text-sm mb-3">Bulk Actions</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="bg-slate-700 text-white py-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                        <i class="fa-solid fa-envelope"></i>
+                        Send SMS
+                    </button>
+                    <button class="bg-slate-700 text-white py-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                        <i class="fa-solid fa-at"></i>
+                        Send Email
+                    </button>
+                    <button class="bg-slate-700 text-white py-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                        <i class="fa-solid fa-file-export"></i>
+                        Export List
+                    </button>
+                    <button class="bg-slate-700 text-white py-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                        <i class="fa-solid fa-tags"></i>
+                        Add Tags
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-navigation" class="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 max-w-md mx-auto">
+        <div class="flex items-center justify-around py-2">
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-house text-xl"></i>
+                <span class="text-xs">Home</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-calendar text-xl"></i>
+                <span class="text-xs">Calendar</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 -mt-8">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/50">
+                    <i class="fa-solid fa-plus text-white text-2xl"></i>
+                </div>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-violet-400">
+                <i class="fa-solid fa-users text-xl"></i>
+                <span class="text-xs font-medium">Clients</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-ellipsis text-xl"></i>
+                <span class="text-xs">More</span>
+            </button>
+        </div>
+    </nav>
+
+    <button id="fab-button" class="fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full shadow-lg shadow-violet-500/50 flex items-center justify-center active:scale-95 transition-transform">
+        <i class="fa-solid fa-message text-white text-xl"></i>
+        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center">2</span>
+    </button>
+
+</div>
+
+<div id="sort-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden">
+    <div class="absolute bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-800 rounded-t-3xl p-6 animate-slide-up">
+        <div class="w-12 h-1 bg-slate-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-lg font-semibold mb-4">Sort By</h3>
+        <div class="space-y-2">
+            <button class="w-full flex items-center justify-between bg-slate-700 rounded-lg p-4 text-left active:scale-95 transition-transform">
+                <span class="text-sm">Name (A-Z)</span>
+                <i class="fa-solid fa-check text-violet-400"></i>
+            </button>
+            <button class="w-full flex items-center justify-between bg-slate-900 rounded-lg p-4 text-left active:scale-95 transition-transform">
+                <span class="text-sm">Name (Z-A)</span>
+            </button>
+            <button class="w-full flex items-center justify-between bg-slate-900 rounded-lg p-4 text-left active:scale-95 transition-transform">
+                <span class="text-sm">Most Recent</span>
+            </button>
+            <button class="w-full flex items-center justify-between bg-slate-900 rounded-lg p-4 text-left active:scale-95 transition-transform">
+                <span class="text-sm">Most Visits</span>
+            </button>
+            <button class="w-full flex items-center justify-between bg-slate-900 rounded-lg p-4 text-left active:scale-95 transition-transform">
+                <span class="text-sm">Highest Spending</span>
+            </button>
+            <button class="w-full flex items-center justify-between bg-slate-900 rounded-lg p-4 text-left active:scale-95 transition-transform">
+                <span class="text-sm">Best Rating</span>
+            </button>
+        </div>
+        <button class="w-full mt-4 bg-slate-700 text-white py-3 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+            Close
+        </button>
+    </div>
+</div>
+
+<div id="filter-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden">
+    <div class="absolute bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-800 rounded-t-3xl p-6 animate-slide-up max-h-[80vh] overflow-y-auto">
+        <div class="w-12 h-1 bg-slate-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-lg font-semibold mb-4">Advanced Filters</h3>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Client Status</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="bg-slate-700 text-white py-2 rounded-lg text-xs active:scale-95 transition-transform">Active</button>
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">Inactive</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Client Type</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">VIP</button>
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">Regular</button>
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">New</button>
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">All</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Total Visits</label>
+                <div class="flex items-center gap-2">
+                    <input type="number" placeholder="Min" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    <span class="text-slate-500">-</span>
+                    <input type="number" placeholder="Max" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Total Spending</label>
+                <div class="flex items-center gap-2">
+                    <input type="number" placeholder="Min ₹" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    <span class="text-slate-500">-</span>
+                    <input type="number" placeholder="Max ₹" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Rating</label>
+                <div class="flex items-center gap-2">
+                    <button class="flex-1 bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">5★</button>
+                    <button class="flex-1 bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">4★+</button>
+                    <button class="flex-1 bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">3★+</button>
+                    <button class="flex-1 bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">All</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Last Visit</label>
+                <select class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    <option>Any time</option>
+                    <option>Last 7 days</option>
+                    <option>Last 30 days</option>
+                    <option>Last 3 months</option>
+                    <option>Last 6 months</option>
+                    <option>Last year</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="text-sm text-slate-400 mb-2 block">Gender</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">Male</button>
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">Female</button>
+                    <button class="bg-slate-900 text-slate-400 py-2 rounded-lg text-xs border border-slate-700 active:scale-95 transition-transform">All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button class="flex-1 bg-slate-700 text-white py-3 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                Reset
+            </button>
+            <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-3 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                Apply Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('sort-button').addEventListener('click', function() {
+    document.getElementById('sort-modal').classList.remove('hidden');
+});
+
+document.getElementById('advanced-filter-button').addEventListener('click', function() {
+    document.getElementById('filter-modal').classList.remove('hidden');
+});
+
+document.getElementById('sort-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.add('hidden');
+    }
+});
+
+document.getElementById('filter-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.add('hidden');
+    }
+});
+</script>
+
+</body>
+</html>
