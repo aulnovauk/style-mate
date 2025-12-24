@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "StylemateBusiness",
+    "slug": "stylemate-business",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "jsEngine": "hermes",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stylemate.business",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow StylemateBusiness to access your camera for client photos and scanning",
+        "NSPhotoLibraryUsageDescription": "Allow StylemateBusiness to access your photos"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "package": "com.stylemate.business",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "CAMERA",
+        "POST_NOTIFICATIONS",
+        "android.permission.CAMERA"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow StylemateBusiness to access your camera for client photos"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#3B82F6"
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "scheme": "stylematebusiness",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "business-project-id-placeholder"
+      }
+    }
+  }
+}
