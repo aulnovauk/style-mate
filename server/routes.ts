@@ -89,7 +89,6 @@ import { registerMobileUserRoutes } from "./routes/mobile-user.routes";
 import { registerMobileBookingsRoutes } from "./routes/mobile-bookings.routes";
 import { registerMobileOffersRoutes } from "./routes/mobile-offers.routes";
 import { registerMobilePackagesRoutes } from "./routes/mobile-packages.routes";
-import { registerMobileBusinessRoutes } from "./routes/mobile-business.routes";
 import { registerCancellationRoutes, registerMobileCancellationRoutes } from "./routes/cancellation.routes";
 import waitlistRoutes from "./routes/waitlist.routes";
 import mobileWaitlistRoutes from "./routes/mobile-waitlist.routes";
@@ -17811,10 +17810,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mobile cancellation routes (structured reason tracking)
   registerMobileCancellationRoutes(app);
   console.log('✅ Mobile cancellation routes registered');
-
-  // Mobile Business App routes (dashboard, calendar, staff booking)
-  registerMobileBusinessRoutes(app);
-  console.log('✅ Mobile business routes registered');
 
   // Web cancellation routes (customer portal and salon analytics)
   registerCancellationRoutes(app);
