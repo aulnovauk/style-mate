@@ -90,6 +90,8 @@ import { registerMobileBookingsRoutes } from "./routes/mobile-bookings.routes";
 import { registerMobileOffersRoutes } from "./routes/mobile-offers.routes";
 import { registerMobilePackagesRoutes } from "./routes/mobile-packages.routes";
 import { registerMobileBusinessRoutes } from "./routes/mobile-business.routes";
+import { registerMobileInventoryRoutes } from "./routes/mobile-inventory.routes";
+import { registerMobileSettingsRoutes } from "./routes/mobile-settings.routes";
 import { registerCancellationRoutes, registerMobileCancellationRoutes } from "./routes/cancellation.routes";
 import waitlistRoutes from "./routes/waitlist.routes";
 import mobileWaitlistRoutes from "./routes/mobile-waitlist.routes";
@@ -17815,6 +17817,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mobile Business App routes (dashboard, calendar, staff booking)
   registerMobileBusinessRoutes(app);
   console.log('✅ Mobile business routes registered');
+
+  // Mobile Inventory Management routes (products, stock, purchase orders)
+  registerMobileInventoryRoutes(app);
+  console.log('✅ Mobile inventory routes registered');
+
+  // Mobile Settings Management routes
+  registerMobileSettingsRoutes(app);
 
   // Web cancellation routes (customer portal and salon analytics)
   registerCancellationRoutes(app);

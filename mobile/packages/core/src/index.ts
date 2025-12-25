@@ -90,3 +90,16 @@ export {
   useCommissionHistory,
   useCommissionActions,
 } from './hooks/useBusinessApi';
+
+// Preferences
+export {
+  preferencesStorage,
+  type NotificationPreferences,
+  type AppPreferences,
+  type SecurityPreferences,
+} from './services/preferencesStorage';
+export {
+  useNotificationPreferences,
+  useAppPreferences,
+  useSecurityPreferences,
+} from './hooks/usePreferences';

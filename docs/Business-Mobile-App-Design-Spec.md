@@ -14,7 +14,7 @@ This document outlines the mobile UI screen designs for the Stylemate Business M
 
 ## Development Status Checklist
 
-*Last Updated: December 24, 2025 - Packages Management screens completed (Packages List, Add/Edit Package)*
+*Last Updated: December 25, 2025 - Full audit completed. Services & Products now shows all 14 screens developed including complete Inventory module (Dashboard, Products, Stock Adjustment, Purchase Orders, Stocktake, Suppliers). Settings Hub has 11 screens. Payroll module now complete with 6 screens (Overview, Run Wizard, Staff Details, History, Commission Structure, Reports) - Zylu-inspired with automated commission calculations and Indian tax compliance. Total: 49 developed, 1 partial, 10 remaining.*
 
 ### Legend
 - ✅ **Developed** - Screen is implemented and functional
@@ -67,9 +67,12 @@ This document outlines the mobile UI screen designs for the Stylemate Business M
 ### Payroll
 | Screen | Status | File Path | Notes |
 |--------|--------|-----------|-------|
-| Payroll Overview | ❌ Not Started | - | Monthly payroll summary |
-| Payroll Run Wizard | ❌ Not Started | - | Step-by-step payroll processing |
-| Staff Payout Details | ❌ Not Started | - | Individual staff earnings |
+| Payroll Overview | ✅ Developed | `app/payroll/index.tsx` | Summary cards (Total/Staff/Paid/Pending), pay period selector with month navigation, staff payroll list with earnings/deductions breakdown, payment history, Run Payroll & Export actions |
+| Payroll Run Wizard | ✅ Developed | `app/payroll/run-wizard.tsx` | 4-step wizard: Select Staff → Review Earnings → Adjustments → Confirm. Staff multi-select, earnings review, one-time adjustments with notes, confirmation with warning |
+| Staff Payout Details | ✅ Developed | `app/payroll/[staffId].tsx` | Individual earnings breakdown (base, HRA, allowances, commission, bonus, overtime, tips), deductions (TDS, PF, ESI, professional tax, advances), attendance summary, payment history, download payslip |
+| Payment History | ✅ Developed | `app/payroll/history.tsx` | Year selector (2024/2023/2022), payroll cycles list with progress bars, status badges (Completed/Partial/Pending), download reports, summary stats |
+| Commission Structure | ✅ Developed | `app/payroll/commission-structure.tsx` | Zylu-inspired: Create/edit commission structures with 3 types (Flat/Percentage/Tiered), service category assignment, activate/deactivate, staff assignment count |
+| Payroll Reports | ✅ Developed | `app/payroll/reports.tsx` | 12 report types across 4 categories (Payroll/Tax/Staff/Attendance), PDF/Excel/CSV export, Indian tax compliance (TDS Form 24Q, PF ECR, ESI), recent reports history |
 
 ### Services & Products
 | Screen | Status | File Path | Notes |
@@ -78,10 +81,16 @@ This document outlines the mobile UI screen designs for the Stylemate Business M
 | Add/Edit Service | ✅ Developed | `app/services/add-edit.tsx` | Zod validation, category/gender/price type, duration chips, staff assignment, duplicate support |
 | Packages List | ✅ Developed | `app/packages/index.tsx` | Package catalog with stats, search, status filter chips, toggle active/inactive, duplicate package |
 | Add/Edit Package | ✅ Developed | `app/packages/add-edit.tsx` | 3-step wizard: Details → Select Services → Pricing with 4 pricing types, Extra Time Modal, premium package support |
-| Memberships List | ❌ Not Started | `app/memberships/index.tsx` | Fresha-inspired: Plans/Members/Analytics tabs, color-coded plan types, online sales/redemption status |
-| Add/Edit Membership | ❌ Not Started | `app/memberships/add-edit.tsx` | 4-step wizard: Type → Details → Payment → Review with Fresha patterns |
-| Membership Members | ❌ Not Started | `app/memberships/members.tsx` | Fresha-inspired: Pause/Resume/Cancel lifecycle, session tracking, bulk actions |
-| Product/Inventory | ❌ Not Started | - | Stock levels and reordering |
+| Memberships List | ✅ Developed | `app/memberships/index.tsx` | Fresha-inspired: Plans/Members/Analytics tabs, color-coded plan types (Discount/Credit/Session), stats cards, search, status filters |
+| Add/Edit Membership | ✅ Developed | `app/memberships/add-edit.tsx` | 4-step wizard: Type Selection → Details (dynamic) → Payment & Billing → Online Settings, perks support, auto-renewal |
+| Membership Members | ✅ Developed | `app/memberships/members.tsx` | Fresha-inspired: Pause/Resume/Cancel lifecycle actions, member list, status filters, send reminder |
+| Inventory Dashboard | ✅ Developed | `app/inventory/index.tsx` | Products/Categories/Suppliers/Orders tabs, stats cards (Total/Value/Low Stock/Reorder/Expiring), search, filters, bottom action bar |
+| Add/Edit Product | ✅ Developed | `app/inventory/add-edit.tsx` | 4-step wizard: Basic Info → Stock Settings → Pricing → Retail Settings, barcode support, form validation |
+| Stock Adjustment | ✅ Developed | `app/inventory/adjust.tsx` | Movement types (Receive/Usage/Adjust/Transfer/Damage/Return/Expired), quantity stepper, batch/expiry tracking, movement history |
+| Purchase Orders Create | ✅ Developed | `app/inventory/purchase-orders/create.tsx` | 3-step wizard: Supplier → Products → Review, smart reorder suggestions, vendor selection |
+| Purchase Order Detail | ✅ Developed | `app/inventory/purchase-orders/[id].tsx` | PO status tracking (Draft/Sent/Confirmed/Received/Cancelled), receive items with batch/expiry, discrepancy notes |
+| Stocktake | ✅ Developed | `app/inventory/stocktake.tsx` | Physical count workflow, search products, variance tracking, discrepancy flagging, apply adjustments |
+| Supplier Add/Edit | ✅ Developed | `app/inventory/suppliers/add-edit.tsx` | Contact info, address, payment terms, status management, rating system |
 
 ### Analytics & Reports
 | Screen | Status | File Path | Notes |
@@ -107,12 +116,17 @@ This document outlines the mobile UI screen designs for the Stylemate Business M
 ### Settings
 | Screen | Status | File Path | Notes |
 |--------|--------|-----------|-------|
-| Settings Hub | ❌ Not Started | - | Main settings menu |
-| Business Information | ❌ Not Started | - | Salon profile and details |
-| Working Hours | ❌ Not Started | - | Operating schedule |
-| Booking Rules | ❌ Not Started | - | Advance booking, cancellation policy |
-| Payment Methods | ❌ Not Started | - | Payment gateway settings |
-| Access Control/RBAC | ❌ Not Started | - | Staff permissions |
+| Settings Hub | ✅ Developed | `app/settings/index.tsx` | Profile, salon info, notifications, app preferences, security, support - all toggles functional with loading states |
+| Language Settings | ✅ Developed | `app/settings/language.tsx` | 8 languages (EN, HI, ES, FR, DE, PT, AR, ZH) with native names, checkmark selection |
+| Theme Settings | ✅ Developed | `app/settings/theme.tsx` | Dark/Light/System modes with persistent storage |
+| Date Format Settings | ✅ Developed | `app/settings/date-format.tsx` | 5 formats (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, DD-MMM-YYYY, MMM DD YYYY) |
+| Time Format Settings | ✅ Developed | `app/settings/time-format.tsx` | 12-hour/24-hour toggle with examples |
+| Change Password | ✅ Developed | `app/settings/change-password.tsx` | Backend API integration, validation, bcrypt hashing |
+| Business Information | ✅ Developed | `app/settings/business-info.tsx` | Salon profile, address, contact - email/phone validation, required field checks, unsaved changes warning |
+| Working Hours | ✅ Developed | `app/settings/working-hours.tsx` | Per-day open/close times, breaks - time validation (end > start), unsaved changes warning |
+| Booking Rules | ✅ Developed | `app/settings/booking-rules.tsx` | Instant booking, group bookings, deals toggles - unsaved changes warning, owner-only access |
+| Payment Methods | ✅ Developed | `app/settings/payment-methods.tsx` | Cash, card, UPI, Razorpay toggles - preview mode (pending backend RBAC) |
+| Access Control/RBAC | ✅ Developed | `app/settings/access-control.tsx` | Role management, staff permissions - preview mode (pending backend RBAC) |
 
 ### Summary Statistics
 | Category | Developed | Partial | Not Started | Total |
@@ -123,18 +137,18 @@ This document outlines the mobile UI screen designs for the Stylemate Business M
 | Clients | 4 | 0 | 0 | 4 |
 | Team | 5 | 0 | 0 | 5 |
 | Payroll | 0 | 0 | 3 | 3 |
-| Services & Products | 4 | 0 | 4 | 8 |
+| Services & Products | 14 | 0 | 0 | 14 |
 | Analytics | 0 | 0 | 3 | 3 |
 | Communication | 0 | 0 | 3 | 3 |
 | Marketing | 0 | 0 | 3 | 3 |
-| Settings | 0 | 0 | 6 | 6 |
-| **TOTAL** | **22** | **1** | **26** | **49** |
+| Settings | 11 | 0 | 0 | 11 |
+| **TOTAL** | **43** | **1** | **16** | **60** |
 
-**Development Progress: ~47% Complete (23/49 screens)**
+**Development Progress: ~73% Complete (44/60 screens)**
 
 ### Fully Implemented Screens
 
-The following 22 screens are fully implemented with production-level code:
+The following 43 screens are fully implemented with production-level code:
 
 **Main Tabs (4 screens):**
 1. Dashboard Overview (Home) - `app/(tabs)/index.tsx`
@@ -162,11 +176,34 @@ The following 22 screens are fully implemented with production-level code:
 17. Leave Management - `app/team/leave.tsx`
 18. Commissions - `app/team/commissions.tsx`
 
-**Services & Products (4 screens):**
+**Services & Products (14 screens):**
 19. Services Management - `app/services/index.tsx`
 20. Add/Edit Service - `app/services/add-edit.tsx`
 21. Packages List - `app/packages/index.tsx`
 22. Add/Edit Package - `app/packages/add-edit.tsx`
+23. Memberships List - `app/memberships/index.tsx`
+24. Add/Edit Membership - `app/memberships/add-edit.tsx`
+25. Membership Members - `app/memberships/members.tsx`
+26. Inventory Dashboard - `app/inventory/index.tsx` (Products/Categories/Suppliers/Orders tabs, stats, filters)
+27. Add/Edit Product - `app/inventory/add-edit.tsx` (4-step wizard: Basic Info → Stock → Pricing → Retail)
+28. Stock Adjustment - `app/inventory/adjust.tsx` (7 movement types, batch/expiry tracking, history)
+29. Purchase Orders Create - `app/inventory/purchase-orders/create.tsx` (3-step wizard)
+30. Purchase Order Detail - `app/inventory/purchase-orders/[id].tsx` (Status tracking, receive items)
+31. Stocktake - `app/inventory/stocktake.tsx` (Physical count, variance tracking)
+32. Supplier Add/Edit - `app/inventory/suppliers/add-edit.tsx` (Contact, payment terms, rating)
+
+**Settings (11 screens):**
+33. Settings Hub - `app/settings/index.tsx` (Profile, notifications, app preferences, security, support - all functional)
+34. Language Settings - `app/settings/language.tsx` (8 languages with native names)
+35. Theme Settings - `app/settings/theme.tsx` (Dark/Light/System modes)
+36. Date Format Settings - `app/settings/date-format.tsx` (5 date formats)
+37. Time Format Settings - `app/settings/time-format.tsx` (12/24 hour)
+38. Change Password - `app/settings/change-password.tsx` (Backend API, validation, bcrypt)
+39. Business Information - `app/settings/business-info.tsx` (Salon profile, address, contact - email/phone validation, required fields, unsaved changes warning)
+40. Working Hours - `app/settings/working-hours.tsx` (Per-day schedules with breaks - time validation, unsaved changes warning)
+41. Booking Rules - `app/settings/booking-rules.tsx` (Instant booking, group bookings, deals - owner-only access, unsaved changes warning)
+42. Payment Methods - `app/settings/payment-methods.tsx` (Cash, card, UPI, Razorpay - preview mode pending backend RBAC)
+43. Access Control/RBAC - `app/settings/access-control.tsx` (Role management, permissions - preview mode pending backend RBAC)
 
 **Partial Implementation (1 screen):**
 - More Features Hub - `app/(tabs)/more.tsx` (menu structure only)
@@ -2709,7 +2746,21 @@ App
 
 ### 15. Product/Inventory Management
 
-**Purpose:** Manage retail products and stock
+**Purpose:** Comprehensive inventory management with real-time stock tracking, supplier management, purchase orders, and stocktaking (Fresha-inspired)
+
+**Screens in this flow:**
+- 15a. Inventory Dashboard (main hub with tabs)
+- 15b. Add/Edit Product (multi-step wizard)
+- 15c. Stock Adjustment (receive, usage, transfer)
+- 15d. Purchase Orders (PO lifecycle)
+- 15e. Stocktake (physical inventory count)
+- 15f. Supplier Management
+
+---
+
+#### 15a. Inventory Dashboard
+
+**Purpose:** Central hub for all inventory operations with quick access to products, categories, suppliers, and orders
 
 **Layout:**
 
@@ -2718,42 +2769,1090 @@ App
 │ ← Back       Inventory        ➕ Add    │
 ├─────────────────────────────────────────┤
 │                                         │
-│  🔍 Search products...                  │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │ 📦      │ │ 💰      │ │ ⚠️      │   │ ← Stats Cards
+│  │ Products│ │ Value   │ │ Low     │   │   (Fresha-inspired)
+│  │   124   │ │₹2.5L    │ │ Stock   │   │
+│  │         │ │ total   │ │   8     │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
 │                                         │
-│  ⚠️ Low Stock Alerts (3)                │
+│  ┌─────────┐ ┌─────────┐               │
+│  │ 🔄      │ │ ⏰      │               │
+│  │ Reorder │ │ Expiring│               │
+│  │   3     │ │   5     │               │
+│  └─────────┘ └─────────┘               │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  [Products] [Categories] [Suppliers] [Orders]  │ ← Tab Pills
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  🔍 Search products...        [Filter ▼]│
+│                                         │
+│  ⚠️ Low Stock Alerts                    │ ← Collapsible Alert Section
 │  ┌───────────────────────────────────┐  │
-│  │ 🔴 Hair Serum Pro - 2 left       │  │
-│  │ 🟡 Keratin Shampoo - 5 left      │  │
-│  │ 🟡 Face Cream - 4 left           │  │
-│  │ [Reorder All]                     │  │
+│  │ 🔴 Hair Serum Pro         2 left  │  │
+│  │ 🟡 Keratin Shampoo        5 left  │  │
+│  │ 🟡 Face Cream             4 left  │  │
+│  │ [📋 Create Reorder List]          │  │ ← Fresha: Quick reorder
+│  └───────────────────────────────────┘  │
+│                                         │
+│  All Products (124)              [Sort ▼]│
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ [📷]  Hair Serum Pro              │  │ ← Product image thumbnail
+│  │       L'Oreal • Hair Care         │  │ ← Brand + Category
+│  │       SKU: HSP001  📊 Barcode     │  │
+│  │       ┌────────────────────────┐  │  │
+│  │       │ Stock: 2   │ ₹899/unit │  │  │ ← Stock badge + Price
+│  │       │   🔴       │  Cost:₹650│  │  │
+│  │       └────────────────────────┘  │  │
+│  │       [📝 Edit] [📦 Adjust] [🛒 Reorder]│ ← Quick actions
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ [📷]  Keratin Shampoo            │  │
+│  │       Matrix • Hair Care          │  │
+│  │       SKU: KS002                  │  │
+│  │       ┌────────────────────────┐  │  │
+│  │       │ Stock: 15  │ ₹450/unit │  │  │
+│  │       │   🟢       │  Cost:₹320│  │  │
+│  │       └────────────────────────┘  │  │
+│  │       [📝 Edit] [📦 Adjust] [🛒 Reorder]│
 │  └───────────────────────────────────┘  │
 │                                         │
 ├─────────────────────────────────────────┤
-│  All Products                           │
+│  [📥 Import]  [📤 Export]  [📋 Stocktake] │ ← Bottom Action Bar
+└─────────────────────────────────────────┘
+```
+
+**Categories Tab View:**
+
+```
+┌─────────────────────────────────────────┐
+│  [Products] [Categories] [Suppliers] [Orders]  │
+├─────────────────────────────────────────┤
+│                                         │
+│  Categories (8)              [➕ Add]   │
 │                                         │
 │  ┌───────────────────────────────────┐  │
-│  │ 🧴 Hair Serum Pro                 │  │
-│  │    SKU: HSP001                    │  │
-│  │    Stock: 2 🔴 • Price: ₹899      │  │
-│  │    [Edit] [Restock]               │  │
+│  │ 💇 Hair Care               32 items│  │
+│  │    └─ Shampoos (12)               │  │ ← Subcategories
+│  │    └─ Conditioners (8)            │  │
+│  │    └─ Treatments (12)             │  │
+│  │    Value: ₹45,000                 │  │
+│  │    [Edit] [View Products]         │  │
 │  └───────────────────────────────────┘  │
 │                                         │
 │  ┌───────────────────────────────────┐  │
-│  │ 🧴 Keratin Shampoo               │  │
-│  │    SKU: KS002                     │  │
-│  │    Stock: 5 🟡 • Price: ₹450      │  │
-│  │    [Edit] [Restock]               │  │
+│  │ 💅 Nail Care               18 items│  │
+│  │    └─ Polish (10)                 │  │
+│  │    └─ Tools (8)                   │  │
+│  │    Value: ₹22,000                 │  │
+│  │    [Edit] [View Products]         │  │
 │  └───────────────────────────────────┘  │
 │                                         │
 │  ┌───────────────────────────────────┐  │
-│  │ 🧴 Moisturizing Conditioner      │  │
-│  │    SKU: MC003                     │  │
-│  │    Stock: 15 🟢 • Price: ₹350     │  │
-│  │    [Edit] [Restock]               │  │
+│  │ 🧴 Skin Care               28 items│  │
+│  │    Value: ₹68,000                 │  │
+│  │    [Edit] [View Products]         │  │
 │  └───────────────────────────────────┘  │
 │                                         │
 └─────────────────────────────────────────┘
 ```
+
+**Suppliers Tab View:**
+
+```
+┌─────────────────────────────────────────┐
+│  [Products] [Categories] [Suppliers] [Orders]  │
+├─────────────────────────────────────────┤
+│                                         │
+│  Suppliers (5)               [➕ Add]   │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🏢 L'Oreal Professional           │  │
+│  │    📞 +91 98765 43210             │  │
+│  │    📧 orders@loreal.com           │  │
+│  │    ┌────────────────────────────┐ │  │
+│  │    │ Products: 24 │ Rating: ⭐4.8│ │  │
+│  │    │ Pending: 2 POs             │ │  │
+│  │    └────────────────────────────┘ │  │
+│  │    [📝 Edit] [📋 New Order] [📞 Call]│
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🏢 Matrix India                   │  │
+│  │    📞 +91 98765 12345             │  │
+│  │    📧 supply@matrix.in            │  │
+│  │    ┌────────────────────────────┐ │  │
+│  │    │ Products: 18 │ Rating: ⭐4.5│ │  │
+│  │    │ Pending: 0 POs             │ │  │
+│  │    └────────────────────────────┘ │  │
+│  │    [📝 Edit] [📋 New Order] [📞 Call]│
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Orders Tab View:**
+
+```
+┌─────────────────────────────────────────┐
+│  [Products] [Categories] [Suppliers] [Orders]  │
+├─────────────────────────────────────────┤
+│                                         │
+│  [All] [Draft] [Ordered] [Received]     │ ← Status Filter Chips
+│                                         │
+│  Purchase Orders (12)        [➕ Create]│
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 📋 PO-2024-0042                   │  │
+│  │    L'Oreal Professional           │  │
+│  │    Ordered: Dec 20 • Due: Dec 27  │  │
+│  │    ┌────────────────────────────┐ │  │
+│  │    │ Items: 8  │ Total: ₹24,500 │ │  │
+│  │    │   🟡 In Transit            │ │  │ ← Status badge
+│  │    └────────────────────────────┘ │  │
+│  │    [👁 View] [📦 Receive Items]   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 📋 PO-2024-0041                   │  │
+│  │    Matrix India                   │  │
+│  │    Ordered: Dec 18 • Due: Dec 25  │  │
+│  │    ┌────────────────────────────┐ │  │
+│  │    │ Items: 5  │ Total: ₹12,800 │ │  │
+│  │    │   ✅ Received               │ │  │
+│  │    └────────────────────────────┘ │  │
+│  │    [👁 View] [📊 View Receipt]    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 📋 PO-2024-0040                   │  │
+│  │    L'Oreal Professional           │  │
+│  │    Created: Dec 22 (Draft)        │  │
+│  │    ┌────────────────────────────┐ │  │
+│  │    │ Items: 3  │ Total: ₹8,200  │ │  │
+│  │    │   📝 Draft                  │ │  │
+│  │    └────────────────────────────┘ │  │
+│  │    [✏️ Edit] [📤 Send to Supplier]│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Component Specifications:**
+
+| Component | Behavior |
+|-----------|----------|
+| Stats Cards | Tap to filter list (e.g., tap "Low Stock" shows only low stock items) |
+| Product Card | Swipe left for delete, long-press for more options |
+| Stock Badge | 🔴 Out/Critical (≤ min), 🟡 Low (≤ reorder point), 🟢 Good |
+| Filter Dropdown | Category, Supplier, Stock Status, Retail Status |
+| Sort Options | Name A-Z, Stock Low-High, Price, Recently Updated |
+| Import | CSV upload with column mapping (Fresha pattern) |
+| Export | Excel/CSV download with filters applied |
+
+**API Endpoints:**
+- GET `/api/salons/:id/products` - List products with filters
+- GET `/api/salons/:id/inventory/metrics` - Dashboard stats
+- GET `/api/salons/:id/product-categories` - List categories
+- GET `/api/salons/:id/vendors` - List suppliers
+- GET `/api/salons/:id/purchase-orders` - List POs
+
+---
+
+#### 15b. Add/Edit Product (Multi-Step Wizard)
+
+**Purpose:** Create or edit products with comprehensive details (Fresha-inspired step wizard)
+
+**Step 1: Basic Info**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Cancel     Add Product       Step 1/4 │
+├─────────────────────────────────────────┤
+│                                         │
+│  ○───●───○───○                          │ ← Progress indicator
+│  Basic  Stock  Pricing  Retail          │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  📷 Product Photo                       │
+│  ┌───────────────────────────────────┐  │
+│  │                                   │  │
+│  │         [📷 Add Photo]            │  │ ← Tap to upload/camera
+│  │                                   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Product Name *                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Hair Repair Serum                 │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  SKU (Auto-generated if blank)          │
+│  ┌───────────────────────────────────┐  │
+│  │ HRS-001                           │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Barcode (Optional)                     │
+│  ┌───────────────────────────────────┐  │
+│  │ 8901234567890          [📷 Scan] │  │ ← Barcode scanner
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Brand                                  │
+│  ┌───────────────────────────────────┐  │
+│  │ L'Oreal Professional          ▼  │  │ ← Dropdown with add new
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Category *                             │
+│  ┌───────────────────────────────────┐  │
+│  │ Hair Care > Treatments        ▼  │  │ ← Hierarchical selector
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Description                            │
+│  ┌───────────────────────────────────┐  │
+│  │ Intensive repair serum for       │  │
+│  │ damaged hair...                  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Size / Volume                          │
+│  ┌───────────────────────────────────┐  │
+│  │ 100                    │ ml   ▼ │  │ ← Unit selector
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │             Next Step →           │  │ ← Gradient CTA
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Step 2: Stock Settings**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back       Add Product       Step 2/4 │
+├─────────────────────────────────────────┤
+│                                         │
+│  ●───●───○───○                          │
+│  Basic  Stock  Pricing  Retail          │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  🔔 Stock Tracking                      │
+│  ┌───────────────────────────────────┐  │
+│  │ Track stock levels         [ON]  │  │ ← Toggle
+│  │ Get alerts for low stock         │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Current Stock *                        │
+│  ┌───────────────────────────────────┐  │
+│  │ 25                       │ units │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Minimum Stock Level (Alert threshold)  │
+│  ┌───────────────────────────────────┐  │
+│  │ 5                        │ units │  │
+│  └───────────────────────────────────┘  │
+│  ℹ️ Alert when stock falls below this   │
+│                                         │
+│  Reorder Point                          │
+│  ┌───────────────────────────────────┐  │
+│  │ 10                       │ units │  │
+│  └───────────────────────────────────┘  │
+│  ℹ️ Suggest reorder when stock reaches  │
+│                                         │
+│  Reorder Quantity                       │
+│  ┌───────────────────────────────────┐  │
+│  │ 20                       │ units │  │
+│  └───────────────────────────────────┘  │
+│  ℹ️ Default quantity for purchase orders│
+│                                         │
+│  Lead Time (Supplier delivery time)     │
+│  ┌───────────────────────────────────┐  │
+│  │ 7                        │ days  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Storage Location                       │
+│  ┌───────────────────────────────────┐  │
+│  │ Shelf A3, Back Room              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Expiry Date (Optional)                 │
+│  ┌───────────────────────────────────┐  │
+│  │ 📅 Select date...                │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  [← Previous]            [Next Step →]  │
+└─────────────────────────────────────────┘
+```
+
+**Step 3: Pricing**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back       Add Product       Step 3/4 │
+├─────────────────────────────────────────┤
+│                                         │
+│  ●───●───●───○                          │
+│  Basic  Stock  Pricing  Retail          │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Supplier *                             │
+│  ┌───────────────────────────────────┐  │
+│  │ L'Oreal Professional          ▼  │  │
+│  └───────────────────────────────────┘  │
+│  [➕ Add New Supplier]                  │
+│                                         │
+│  Cost Price (Purchase Price) *          │
+│  ┌───────────────────────────────────┐  │
+│  │ ₹  │ 650                         │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Selling Price (Salon Services) *       │
+│  ┌───────────────────────────────────┐  │
+│  │ ₹  │ 899                         │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 💰 Margin: ₹249 (38.3%)          │  │ ← Auto-calculated
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Tax Category                           │
+│  ┌───────────────────────────────────┐  │
+│  │ GST 18%                       ▼  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Supplier SKU (Optional)                │
+│  ┌───────────────────────────────────┐  │
+│  │ LOreal_HRS_100ml                 │  │
+│  └───────────────────────────────────┘  │
+│  ℹ️ Supplier's product code for orders  │
+│                                         │
+├─────────────────────────────────────────┤
+│  [← Previous]            [Next Step →]  │
+└─────────────────────────────────────────┘
+```
+
+**Step 4: Retail Settings (Online Sales)**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back       Add Product       Step 4/4 │
+├─────────────────────────────────────────┤
+│                                         │
+│  ●───●───●───●                          │
+│  Basic  Stock  Pricing  Retail          │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  🛒 Retail Sales                        │
+│  ┌───────────────────────────────────┐  │
+│  │ Available for online sale  [OFF] │  │ ← Master toggle
+│  │ Customers can purchase online    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ── Settings appear when toggle ON ──   │
+│                                         │
+│  Retail Price (Customer Price)          │
+│  ┌───────────────────────────────────┐  │
+│  │ ₹  │ 999                         │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Retail Stock Allocation                │
+│  ┌───────────────────────────────────┐  │
+│  │ Allocate specific stock    [ON]  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Stock for Online Sales                 │
+│  ┌───────────────────────────────────┐  │
+│  │ 10          of 25 total units    │  │
+│  └───────────────────────────────────┘  │
+│  ┌────────────────────────────────┐     │
+│  │ █████████░░░░░░░ 40% allocated │     │ ← Visual indicator
+│  └────────────────────────────────┘     │
+│                                         │
+│  Retail Description                     │
+│  ┌───────────────────────────────────┐  │
+│  │ Professional hair repair serum   │  │
+│  │ for salon-quality results at     │  │
+│  │ home...                          │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ⭐ Feature on Shop                     │
+│  ┌───────────────────────────────────┐  │
+│  │ Featured product          [OFF]  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │          💾 Save Product          │  │ ← Gradient CTA
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Form Validation (Zod Schema):**
+```typescript
+productSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  sku: z.string().optional(),
+  barcode: z.string().optional(),
+  brandId: z.string().optional(),
+  categoryId: z.string().min(1, "Category is required"),
+  description: z.string().optional(),
+  size: z.string().optional(),
+  unit: z.enum(["ml", "g", "oz", "piece", "pack"]),
+  trackStock: z.boolean().default(true),
+  currentStock: z.number().min(0),
+  minimumStock: z.number().min(0),
+  reorderPoint: z.number().min(0).optional(),
+  reorderQuantity: z.number().min(1).optional(),
+  leadTimeDays: z.number().min(1).default(7),
+  location: z.string().optional(),
+  expiryDate: z.date().optional(),
+  vendorId: z.string().optional(),
+  costPriceInPaisa: z.number().min(0),
+  sellingPriceInPaisa: z.number().min(0),
+  taxCategory: z.string().optional(),
+  availableForRetail: z.boolean().default(false),
+  retailPriceInPaisa: z.number().optional(),
+  retailStockAllocated: z.number().optional(),
+  retailDescription: z.string().optional(),
+  featured: z.boolean().default(false),
+});
+```
+
+**API Endpoints:**
+- POST `/api/salons/:id/products` - Create product
+- PUT `/api/salons/:id/products/:productId` - Update product
+- DELETE `/api/salons/:id/products/:productId` - Delete product
+- POST `/api/salons/:id/products/:productId/photo` - Upload photo
+
+---
+
+#### 15c. Stock Adjustment
+
+**Purpose:** Record stock movements for receiving, usage, adjustments, and transfers
+
+**Layout:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back       Stock Adjustment           │
+├─────────────────────────────────────────┤
+│                                         │
+│  📦 Hair Repair Serum                   │
+│  Current Stock: 25 units                │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Adjustment Type *                      │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │ 📥      │ │ 📤      │ │ 🔄      │   │
+│  │ Receive │ │ Usage   │ │ Adjust  │   │
+│  │  ✓      │ │         │ │         │   │ ← Selected state
+│  └─────────┘ └─────────┘ └─────────┘   │
+│  ┌─────────┐ ┌─────────┐               │
+│  │ ➡️      │ │ 🗑️      │               │
+│  │Transfer │ │ Damage/ │               │
+│  │         │ │ Loss    │               │
+│  └─────────┘ └─────────┘               │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Quantity *                             │
+│  ┌─────────────────────────────────────┐│
+│  │ [ - ]      15         [ + ]        ││ ← Stepper control
+│  └─────────────────────────────────────┘│
+│                                         │
+│  New Stock Level: 40 units              │ ← Live preview
+│                                         │
+│  ── For Receive Type ──                 │
+│                                         │
+│  Purchase Order (Optional)              │
+│  ┌───────────────────────────────────┐  │
+│  │ PO-2024-0042               ▼     │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Unit Cost                              │
+│  ┌───────────────────────────────────┐  │
+│  │ ₹  │ 650                         │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Batch Number                           │
+│  ┌───────────────────────────────────┐  │
+│  │ BATCH-2024-1220                  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Expiry Date                            │
+│  ┌───────────────────────────────────┐  │
+│  │ 📅 Dec 2026                      │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ── For Usage Type ──                   │
+│                                         │
+│  Reason                                 │
+│  ┌───────────────────────────────────┐  │
+│  │ Service usage               ▼    │  │
+│  └───────────────────────────────────┘  │
+│  Options: Service usage, Sample,        │
+│           Personal use, Other           │
+│                                         │
+│  Staff Member                           │
+│  ┌───────────────────────────────────┐  │
+│  │ Priya Sharma                 ▼   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ── Common Fields ──                    │
+│                                         │
+│  Notes                                  │
+│  ┌───────────────────────────────────┐  │
+│  │ Received from regular order...   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │         💾 Save Adjustment        │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Stock Movement History (Bottom Sheet):**
+
+```
+┌─────────────────────────────────────────┐
+│ ─────                                   │ ← Drag handle
+│         Stock History                   │
+├─────────────────────────────────────────┤
+│                                         │
+│  Today                                  │
+│  ┌───────────────────────────────────┐  │
+│  │ 📥 +15 units    10:30 AM          │  │
+│  │    Received from PO-2024-0042     │  │
+│  │    by Rahul (Admin)               │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Yesterday                              │
+│  ┌───────────────────────────────────┐  │
+│  │ 📤 -2 units     3:45 PM           │  │
+│  │    Service usage                  │  │
+│  │    by Priya (Stylist)             │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ 📤 -1 unit      11:20 AM          │  │
+│  │    Sample given to client         │  │
+│  │    by Anjali (Stylist)            │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Dec 20                                 │
+│  ┌───────────────────────────────────┐  │
+│  │ 🔄 +5 units     2:00 PM           │  │
+│  │    Stock correction               │  │
+│  │    by Rahul (Admin)               │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- POST `/api/salons/:id/stock-movements` - Create movement
+- GET `/api/salons/:id/products/:productId/movements` - Get history
+
+---
+
+#### 15d. Purchase Orders
+
+**Purpose:** Create and manage purchase orders for restocking (Fresha-inspired workflow)
+
+**Create Purchase Order:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Cancel     New Order        Step 1/3  │
+├─────────────────────────────────────────┤
+│                                         │
+│  ○───●───○                              │
+│  Supplier  Items  Review                │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Select Supplier *                      │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🔘 L'Oreal Professional          │  │ ← Radio selection
+│  │    24 products • Last order: 5d  │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ ○  Matrix India                  │  │
+│  │    18 products • Last order: 12d │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ ○  Wella Professionals           │  │
+│  │    15 products • Last order: 20d │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  [➕ Add New Supplier]                  │
+│                                         │
+│  Expected Delivery Date                 │
+│  ┌───────────────────────────────────┐  │
+│  │ 📅 Dec 27, 2024                  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Notes for Supplier                     │
+│  ┌───────────────────────────────────┐  │
+│  │ Please deliver between 10-12 AM  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  [← Cancel]              [Next: Items →]│
+└─────────────────────────────────────────┘
+```
+
+**Add Items to PO (Step 2):**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back       New Order        Step 2/3  │
+├─────────────────────────────────────────┤
+│                                         │
+│  ●───●───○                              │
+│  Supplier  Items  Review                │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  L'Oreal Professional                   │
+│  🔍 Search products...                  │
+│                                         │
+│  ⚠️ Suggested Reorders (3)              │ ← Auto-suggestions
+│  ┌───────────────────────────────────┐  │
+│  │ ☑️ Hair Serum Pro                 │  │
+│  │    Stock: 2 🔴 • Reorder: 20      │  │
+│  │    Cost: ₹650 × 20 = ₹13,000      │  │
+│  │    [Qty: [-] 20 [+]]              │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ ☑️ Repair Shampoo                 │  │
+│  │    Stock: 5 🟡 • Reorder: 15      │  │
+│  │    Cost: ₹320 × 15 = ₹4,800       │  │
+│  │    [Qty: [-] 15 [+]]              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  All Products from Supplier             │
+│  ┌───────────────────────────────────┐  │
+│  │ ☐ Keratin Conditioner             │  │
+│  │    Stock: 18 🟢                   │  │
+│  │    Cost: ₹280/unit                │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ ☐ Color Protection Spray          │  │
+│  │    Stock: 12 🟢                   │  │
+│  │    Cost: ₹450/unit                │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  Selected: 2 items • Total: ₹17,800     │
+├─────────────────────────────────────────┤
+│  [← Previous]          [Next: Review →] │
+└─────────────────────────────────────────┘
+```
+
+**Review & Submit (Step 3):**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back       New Order        Step 3/3  │
+├─────────────────────────────────────────┤
+│                                         │
+│  ●───●───●                              │
+│  Supplier  Items  Review                │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  📋 Order Summary                       │
+│                                         │
+│  Supplier: L'Oreal Professional         │
+│  Expected: Dec 27, 2024                 │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Item              Qty      Amount │  │
+│  ├───────────────────────────────────┤  │
+│  │ Hair Serum Pro     20    ₹13,000 │  │
+│  │ Repair Shampoo     15     ₹4,800 │  │
+│  ├───────────────────────────────────┤  │
+│  │ Subtotal                 ₹17,800 │  │
+│  │ GST (18%)                 ₹3,204 │  │
+│  │ Shipping                    ₹500 │  │
+│  ├───────────────────────────────────┤  │
+│  │ TOTAL                    ₹21,504 │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Notes: Please deliver between 10-12 AM │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │     📝 Save as Draft              │  │ ← Secondary action
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │   📤 Send to Supplier             │  │ ← Primary gradient CTA
+│  └───────────────────────────────────┘  │
+│  Email/WhatsApp order to supplier       │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Receive Items (from PO Detail):**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back       Receive Items              │
+├─────────────────────────────────────────┤
+│                                         │
+│  📋 PO-2024-0042                        │
+│  L'Oreal Professional                   │
+│  Ordered: Dec 20 • Expected: Dec 27     │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  ☑️ Receive All Items                   │ ← Quick action
+│                                         │
+│  Items to Receive                       │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Hair Serum Pro                    │  │
+│  │ Ordered: 20 • Received: 0         │  │
+│  │ ┌─────────────────────────────┐   │  │
+│  │ │ Receive: [-]   20   [+]    │   │  │
+│  │ └─────────────────────────────┘   │  │
+│  │ Batch #: [____________]           │  │
+│  │ Expiry:  [📅 Select]              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Repair Shampoo                    │  │
+│  │ Ordered: 15 • Received: 0         │  │
+│  │ ┌─────────────────────────────┐   │  │
+│  │ │ Receive: [-]   15   [+]    │   │  │
+│  │ └─────────────────────────────┘   │  │
+│  │ Batch #: [____________]           │  │
+│  │ Expiry:  [📅 Select]              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ⚠️ Report Discrepancy                  │
+│  ┌───────────────────────────────────┐  │
+│  │ Missing/damaged items?     [Add] │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Receipt Notes                          │
+│  ┌───────────────────────────────────┐  │
+│  │ All items received in good...    │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌───────────────────────────────────┐  │
+│  │      ✅ Confirm Receipt           │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- POST `/api/salons/:id/purchase-orders` - Create PO
+- PUT `/api/salons/:id/purchase-orders/:poId` - Update PO
+- POST `/api/salons/:id/purchase-orders/:poId/confirm` - Send to supplier
+- POST `/api/salons/:id/purchase-orders/:poId/receive` - Receive items
+- GET `/api/salons/:id/purchase-orders/:poId` - Get PO details
+
+---
+
+#### 15e. Stocktake (Physical Inventory Count)
+
+**Purpose:** Perform periodic physical inventory counts and reconcile discrepancies (Fresha feature)
+
+**Layout:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back        Stocktake                 │
+├─────────────────────────────────────────┤
+│                                         │
+│  📋 New Stocktake                       │
+│  Started: Dec 24, 2024 10:30 AM         │
+│  By: Rahul (Admin)                      │
+│                                         │
+│  Progress: 45/124 products counted      │
+│  ┌────────────────────────────────────┐ │
+│  │ ████████████░░░░░░░░░░░░░░░ 36%   │ │
+│  └────────────────────────────────────┘ │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  🔍 Search or scan barcode...   [📷]   │
+│                                         │
+│  [All] [Pending] [Counted] [Discrepancy]│
+│                                         │
+│  Hair Care (12/32 counted)              │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🧴 Hair Serum Pro                 │  │
+│  │    System: 25 • Counted: ___      │  │
+│  │    ┌─────────────────────────┐    │  │
+│  │    │ Count: [-]   __   [+]   │    │  │ ← Enter actual count
+│  │    └─────────────────────────┘    │  │
+│  │    [📷 Scan Barcode]              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🧴 Repair Shampoo          ✅    │  │ ← Counted
+│  │    System: 18 • Counted: 18       │  │
+│  │    ✓ Match                        │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ 🧴 Keratin Conditioner     ⚠️    │  │ ← Discrepancy
+│  │    System: 15 • Counted: 12       │  │
+│  │    ⚠️ -3 units discrepancy        │  │
+│  │    [Add Note] [Recount]           │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  Discrepancies: 3 items (₹2,450 value)  │
+├─────────────────────────────────────────┤
+│  [💾 Save Progress]  [✅ Complete Stocktake]│
+└─────────────────────────────────────────┘
+```
+
+**Stocktake Summary (After Completion):**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back      Stocktake Report            │
+├─────────────────────────────────────────┤
+│                                         │
+│  📋 Stocktake #ST-2024-012              │
+│  Completed: Dec 24, 2024 2:45 PM        │
+│  Duration: 4h 15m                       │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Summary                                │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │ ✅      │ │ ⚠️      │ │ 💰      │   │
+│  │ Matched │ │ Discrep │ │ Value   │   │
+│  │   118   │ │    6    │ │ -₹4,200 │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
+│                                         │
+│  Discrepancies                          │
+│  ┌───────────────────────────────────┐  │
+│  │ Keratin Conditioner    -3  -₹840 │  │
+│  │ Face Serum             -2  -₹1,200│  │
+│  │ Nail Polish Set        -1  -₹450 │  │
+│  │ Hair Color Tube        +2  +₹600 │  │ ← Overstock
+│  │ ...                               │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Actions                                │
+│  ┌───────────────────────────────────┐  │
+│  │ 📊 Apply Stock Adjustments       │  │ ← Update system stock
+│  │    Adjust 6 items to match count │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ 📤 Export Report (PDF/Excel)     │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │ 🔄 Start New Stocktake           │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- POST `/api/salons/:id/stocktakes` - Start stocktake
+- PUT `/api/salons/:id/stocktakes/:id/items` - Update counts
+- POST `/api/salons/:id/stocktakes/:id/complete` - Complete stocktake
+- POST `/api/salons/:id/stocktakes/:id/apply` - Apply adjustments
+- GET `/api/salons/:id/stocktakes/:id/report` - Get report
+
+---
+
+#### 15f. Supplier Management
+
+**Purpose:** Add and manage product suppliers with contact info and performance tracking
+
+**Add/Edit Supplier:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Cancel      Add Supplier              │
+├─────────────────────────────────────────┤
+│                                         │
+│  Company Name *                         │
+│  ┌───────────────────────────────────┐  │
+│  │ L'Oreal Professional             │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Contact Person                         │
+│  ┌───────────────────────────────────┐  │
+│  │ Rajesh Kumar                      │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Phone                                  │
+│  ┌───────────────────────────────────┐  │
+│  │ +91  │ 98765 43210               │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Email                                  │
+│  ┌───────────────────────────────────┐  │
+│  │ orders@loreal-pro.in             │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Address                                │
+│  ┌───────────────────────────────────┐  │
+│  │ 123 Industrial Area, Sector 5    │  │
+│  │ Mumbai, Maharashtra 400001       │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Website                                │
+│  ┌───────────────────────────────────┐  │
+│  │ www.loreal-professional.in       │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  GST Number                             │
+│  ┌───────────────────────────────────┐  │
+│  │ 27AABCL1234A1ZM                  │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Payment Terms                          │
+│  ┌───────────────────────────────────┐  │
+│  │ Net 30 days                   ▼  │  │
+│  └───────────────────────────────────┘  │
+│  Options: COD, Net 15, Net 30, Net 45   │
+│                                         │
+│  Notes                                  │
+│  ┌───────────────────────────────────┐  │
+│  │ Preferred supplier for hair...   │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌───────────────────────────────────┐  │
+│  │          💾 Save Supplier         │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+**Supplier Detail View:**
+
+```
+┌─────────────────────────────────────────┐
+│ ← Back      L'Oreal Professional  [✏️] │
+├─────────────────────────────────────────┤
+│                                         │
+│  🏢 L'Oreal Professional                │
+│  📞 +91 98765 43210                     │
+│  📧 orders@loreal-pro.in                │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │ [📞 Call] [📧 Email] [💬 WhatsApp]│  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│                                         │
+│  Performance                            │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │ ⭐      │ │ 📦      │ │ ⏱️      │   │
+│  │ Rating  │ │ Orders  │ │ Avg     │   │
+│  │  4.8    │ │   24    │ │ Delivery│   │
+│  │         │ │ this yr │ │  5 days │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
+│                                         │
+│  Products from this Supplier (24)       │
+│  ┌───────────────────────────────────┐  │
+│  │ Hair Serum Pro          Stock: 25│  │
+│  │ Repair Shampoo          Stock: 18│  │
+│  │ Keratin Conditioner     Stock: 15│  │
+│  │ [View All →]                      │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  Recent Orders                          │
+│  ┌───────────────────────────────────┐  │
+│  │ PO-2024-0042  Dec 20  ₹21,504    │  │
+│  │ PO-2024-0038  Dec 05  ₹15,200    │  │
+│  │ PO-2024-0031  Nov 18  ₹28,750    │  │
+│  │ [View All Orders →]               │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+├─────────────────────────────────────────┤
+│  ┌───────────────────────────────────┐  │
+│  │      📋 Create New Order          │  │ ← Primary CTA
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- POST `/api/salons/:id/vendors` - Create supplier
+- PUT `/api/salons/:id/vendors/:vendorId` - Update supplier
+- DELETE `/api/salons/:id/vendors/:vendorId` - Delete supplier
+- GET `/api/salons/:id/vendors/:vendorId` - Get supplier details
+
+---
+
+#### Inventory Flow Summary
+
+**Screen Navigation:**
+```
+More Tab
+    └── Inventory (15a)
+            ├── Products Tab
+            │       ├── Add Product → (15b)
+            │       ├── Edit Product → (15b)
+            │       └── Adjust Stock → (15c)
+            ├── Categories Tab
+            │       └── Add/Edit Category (Modal)
+            ├── Suppliers Tab (15f)
+            │       ├── Add Supplier
+            │       └── Supplier Detail
+            └── Orders Tab (15d)
+                    ├── Create PO
+                    ├── PO Detail
+                    └── Receive Items
+            
+Bottom Actions:
+    ├── Import Products (CSV upload)
+    ├── Export Products (Excel/CSV)
+    └── Stocktake → (15e)
+```
+
+**Mobile-First Optimizations (Fresha-inspired):**
+
+1. **Barcode Scanner** - Camera integration for quick product lookup and stocktaking
+2. **Bulk Actions** - Multi-select with swipe gestures for batch operations
+3. **Smart Reorder** - AI-suggested reorder quantities based on sales velocity
+4. **Low Stock Push Notifications** - Alert when products hit reorder point
+5. **Quick Adjust** - One-tap stock adjustment without full form
+6. **Offline Support** - Cache products for stocktaking in areas with poor connectivity
+7. **Voice Input** - Use voice to record stock counts during stocktake
+
+**File Paths for Implementation:**
+- `app/inventory/index.tsx` - Inventory Dashboard (15a)
+- `app/inventory/add-edit.tsx` - Add/Edit Product wizard (15b)
+- `app/inventory/adjust.tsx` - Stock Adjustment (15c)
+- `app/inventory/purchase-orders/index.tsx` - PO List (15d)
+- `app/inventory/purchase-orders/create.tsx` - Create PO (15d)
+- `app/inventory/purchase-orders/receive.tsx` - Receive Items (15d)
+- `app/inventory/stocktake.tsx` - Stocktake (15e)
+- `app/inventory/suppliers/index.tsx` - Supplier List (15f)
+- `app/inventory/suppliers/add-edit.tsx` - Add/Edit Supplier (15f)
 
 ---
 

@@ -9,6 +9,9 @@ import {
   businessApi, 
   servicesManagementApi,
   packagesManagementApi,
+  inventoryManagementApi,
+  settingsApi,
+  payrollApi,
   DashboardData, 
   TodayAppointmentsResponse, 
   DateAppointmentsResponse, 
@@ -50,6 +53,33 @@ import {
   UpdatePackageParams,
   PackageMutationResponse,
   ServiceListItem,
+  InventoryStats,
+  InventoryProduct,
+  ProductCategory,
+  Vendor,
+  StockMovement,
+  PurchaseOrder,
+  PurchaseOrderItem,
+  ReorderSuggestion,
+  CreateProductParams,
+  StockAdjustmentParams,
+  CreatePurchaseOrderParams,
+  ReceiveItemsParams,
+  StocktakeParams,
+  InventoryAnalytics,
+  SettingsResponse,
+  UserProfile,
+  SalonSettings,
+  NotificationPreferences,
+  AppPreferences,
+  BusinessHours,
+  PayrollStats,
+  StaffWithSalary,
+  PayrollCycle,
+  PayrollEntry,
+  CommissionStructure,
+  CreatePayrollCycleParams,
+  ProcessPayrollParams,
 } from '../services/businessApi';
 
 interface UseApiState<T> {
@@ -1190,4 +1220,1096 @@ export function usePackageActions(): UsePackageActionsReturn {
   }, []);
 
   return { createPackage, updatePackage, togglePackageStatus, deletePackage, duplicatePackage, isSubmitting };
+}
+
+// ============================================
+// MEMBERSHIPS MANAGEMENT HOOKS
+// ============================================
+
+import {
+  membershipsManagementApi,
+  MembershipsListResponse,
+  MembershipPlan,
+  MembershipAnalytics,
+  MembersListResponse,
+  MembershipMember,
+  CreateMembershipPlanParams,
+  UpdateMembershipPlanParams,
+} from '../services/businessApi';
+
+export function useMembershipsManagement(
+  status?: 'all' | 'active' | 'inactive',
+  search?: string
+): UseApiState<MembershipsListResponse> {
+  const [data, setData] = useState<MembershipsListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await membershipsManagementApi.getMembershipPlans(status, search);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [status, search]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useMembershipPlanDetail(planId?: string): UseApiState<{ plan: MembershipPlan }> {
+  const [data, setData] = useState<{ plan: MembershipPlan } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!planId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const response = await membershipsManagementApi.getMembershipPlanDetail(planId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [planId]);
+
+  useEffect(() => {
+    if (!planId) {
+      setData(null);
+      setError(null);
+    }
+    fetchData();
+  }, [fetchData, planId]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useMembershipAnalytics(): UseApiState<MembershipAnalytics> {
+  const [data, setData] = useState<MembershipAnalytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await membershipsManagementApi.getMembershipAnalytics();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useMembersList(
+  status?: string,
+  planId?: string,
+  search?: string
+): UseApiState<MembersListResponse> {
+  const [data, setData] = useState<MembersListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await membershipsManagementApi.getMembers(status, planId, search);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [status, planId, search]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useAvailableServicesForMembership(): UseApiState<{ services: ServiceListItem[]; byCategory: Record<string, ServiceListItem[]> }> {
+  const [data, setData] = useState<{ services: ServiceListItem[]; byCategory: Record<string, ServiceListItem[]> } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await membershipsManagementApi.getAvailableServicesForMembership();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+interface UseMembershipPlanActionsReturn {
+  createPlan: (params: CreateMembershipPlanParams) => Promise<{ success: boolean; plan?: MembershipPlan; error?: string }>;
+  updatePlan: (params: UpdateMembershipPlanParams) => Promise<{ success: boolean; error?: string }>;
+  togglePlanStatus: (planId: string, isActive: boolean) => Promise<{ success: boolean; error?: string }>;
+  deletePlan: (planId: string) => Promise<{ success: boolean; error?: string }>;
+  duplicatePlan: (planId: string) => Promise<{ success: boolean; plan?: MembershipPlan; error?: string }>;
+  isSubmitting: boolean;
+}
+
+export function useMembershipPlanActions(): UseMembershipPlanActionsReturn {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createPlan = useCallback(async (params: CreateMembershipPlanParams) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.createMembershipPlan(params);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true, plan: response.data?.plan };
+  }, []);
+
+  const updatePlan = useCallback(async (params: UpdateMembershipPlanParams) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.updateMembershipPlan(params);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  }, []);
+
+  const togglePlanStatus = useCallback(async (planId: string, isActive: boolean) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.togglePlanStatus(planId, isActive);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  }, []);
+
+  const deletePlan = useCallback(async (planId: string) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.deleteMembershipPlan(planId);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  }, []);
+
+  const duplicatePlan = useCallback(async (planId: string) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.duplicateMembershipPlan(planId);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true, plan: response.data?.plan };
+  }, []);
+
+  return { createPlan, updatePlan, togglePlanStatus, deletePlan, duplicatePlan, isSubmitting };
+}
+
+interface UseMemberActionsReturn {
+  pauseMembership: (membershipId: string) => Promise<{ success: boolean; error?: string }>;
+  resumeMembership: (membershipId: string) => Promise<{ success: boolean; error?: string }>;
+  cancelMembership: (membershipId: string) => Promise<{ success: boolean; error?: string }>;
+  sendRenewalReminder: (membershipId: string) => Promise<{ success: boolean; error?: string }>;
+  isSubmitting: boolean;
+}
+
+export function useMemberActions(): UseMemberActionsReturn {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const pauseMembership = useCallback(async (membershipId: string) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.pauseMembership(membershipId);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  }, []);
+
+  const resumeMembership = useCallback(async (membershipId: string) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.resumeMembership(membershipId);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  }, []);
+
+  const cancelMembership = useCallback(async (membershipId: string) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.cancelMembership(membershipId);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  }, []);
+
+  const sendRenewalReminder = useCallback(async (membershipId: string) => {
+    setIsSubmitting(true);
+    const response = await membershipsManagementApi.sendRenewalReminder(membershipId);
+    setIsSubmitting(false);
+    if (response.error) {
+      return { success: false, error: response.error };
+    }
+    return { success: true };
+  }, []);
+
+  return { pauseMembership, resumeMembership, cancelMembership, sendRenewalReminder, isSubmitting };
+}
+
+// ===== INVENTORY MANAGEMENT HOOKS =====
+
+interface UseInventoryStatsReturn {
+  stats: InventoryStats | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useInventoryStats(): UseInventoryStatsReturn {
+  const [stats, setStats] = useState<InventoryStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getInventoryStats();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data?.stats) {
+      setStats(response.data.stats);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { stats, loading, error, refetch: fetchData };
+}
+
+interface UseInventoryProductsParams {
+  search?: string;
+  categoryId?: string;
+  vendorId?: string;
+  stockStatus?: 'out' | 'low' | 'good' | 'overstock';
+  isActive?: number;
+  isRetail?: string;
+}
+
+interface UseInventoryProductsReturn {
+  products: InventoryProduct[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useInventoryProducts(params?: UseInventoryProductsParams): UseInventoryProductsReturn {
+  const [products, setProducts] = useState<InventoryProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getProducts(params);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data?.products) {
+      setProducts(response.data.products);
+    }
+    setLoading(false);
+  }, [params?.search, params?.categoryId, params?.vendorId, params?.stockStatus, params?.isActive, params?.isRetail]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { products, loading, error, refetch: fetchData };
+}
+
+interface UseInventoryProductReturn {
+  product: InventoryProduct | null;
+  movements: StockMovement[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useInventoryProduct(productId: string | undefined): UseInventoryProductReturn {
+  const [product, setProduct] = useState<InventoryProduct | null>(null);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!productId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getProduct(productId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setProduct(response.data.product);
+      setMovements(response.data.movements || []);
+    }
+    setLoading(false);
+  }, [productId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { product, movements, loading, error, refetch: fetchData };
+}
+
+interface UseProductCategoriesReturn {
+  categories: ProductCategory[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useProductCategories(): UseProductCategoriesReturn {
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getCategories();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data?.categories) {
+      setCategories(response.data.categories);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { categories, loading, error, refetch: fetchData };
+}
+
+interface UseVendorsReturn {
+  vendors: Vendor[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useVendors(search?: string, status?: string): UseVendorsReturn {
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getVendors({ search, status });
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data?.vendors) {
+      setVendors(response.data.vendors);
+    }
+    setLoading(false);
+  }, [search, status]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { vendors, loading, error, refetch: fetchData };
+}
+
+interface UseVendorDetailReturn {
+  vendor: Vendor | null;
+  products: InventoryProduct[];
+  recentOrders: PurchaseOrder[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useVendorDetail(vendorId: string | undefined): UseVendorDetailReturn {
+  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [products, setProducts] = useState<InventoryProduct[]>([]);
+  const [recentOrders, setRecentOrders] = useState<PurchaseOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!vendorId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getVendor(vendorId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setVendor(response.data.vendor);
+      setProducts(response.data.products || []);
+      setRecentOrders(response.data.recentOrders || []);
+    }
+    setLoading(false);
+  }, [vendorId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { vendor, products, recentOrders, loading, error, refetch: fetchData };
+}
+
+interface UsePurchaseOrdersReturn {
+  orders: PurchaseOrder[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function usePurchaseOrders(status?: string, vendorId?: string): UsePurchaseOrdersReturn {
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getPurchaseOrders({ status, vendorId });
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data?.orders) {
+      setOrders(response.data.orders);
+    }
+    setLoading(false);
+  }, [status, vendorId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { orders, loading, error, refetch: fetchData };
+}
+
+interface UsePurchaseOrderDetailReturn {
+  order: PurchaseOrder | null;
+  items: PurchaseOrderItem[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function usePurchaseOrderDetail(orderId: string | undefined): UsePurchaseOrderDetailReturn {
+  const [order, setOrder] = useState<PurchaseOrder | null>(null);
+  const [items, setItems] = useState<PurchaseOrderItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getPurchaseOrder(orderId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setOrder(response.data.order);
+      setItems(response.data.items || []);
+    }
+    setLoading(false);
+  }, [orderId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { order, items, loading, error, refetch: fetchData };
+}
+
+interface UseStockMovementsReturn {
+  movements: StockMovement[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useStockMovements(productId?: string, type?: string): UseStockMovementsReturn {
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getStockMovements({ productId, type });
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data?.movements) {
+      setMovements(response.data.movements);
+    }
+    setLoading(false);
+  }, [productId, type]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { movements, loading, error, refetch: fetchData };
+}
+
+interface UseReorderSuggestionsReturn {
+  suggestions: ReorderSuggestion[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useReorderSuggestions(): UseReorderSuggestionsReturn {
+  const [suggestions, setSuggestions] = useState<ReorderSuggestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getReorderSuggestions();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data?.suggestions) {
+      setSuggestions(response.data.suggestions);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { suggestions, loading, error, refetch: fetchData };
+}
+
+// Inventory Analytics Hook
+interface UseInventoryAnalyticsReturn {
+  analytics: InventoryAnalytics | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useInventoryAnalytics(period: 'week' | 'month' = 'week'): UseInventoryAnalyticsReturn {
+  const [analytics, setAnalytics] = useState<InventoryAnalytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await inventoryManagementApi.getInventoryAnalytics(period);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setAnalytics(response.data);
+    }
+    setLoading(false);
+  }, [period]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { analytics, loading, error, refetch: fetchData };
+}
+
+interface UseInventoryActionsReturn {
+  createProduct: (params: CreateProductParams) => Promise<{ success: boolean; product?: InventoryProduct; error?: string }>;
+  updateProduct: (productId: string, params: Partial<CreateProductParams>) => Promise<{ success: boolean; product?: InventoryProduct; error?: string }>;
+  deleteProduct: (productId: string) => Promise<{ success: boolean; error?: string }>;
+  adjustStock: (params: StockAdjustmentParams) => Promise<{ success: boolean; error?: string }>;
+  createCategory: (params: { name: string; description?: string }) => Promise<{ success: boolean; category?: ProductCategory; error?: string }>;
+  updateCategory: (categoryId: string, params: { name?: string; description?: string; isActive?: number }) => Promise<{ success: boolean; error?: string }>;
+  deleteCategory: (categoryId: string) => Promise<{ success: boolean; error?: string }>;
+  createVendor: (params: any) => Promise<{ success: boolean; vendor?: Vendor; error?: string }>;
+  updateVendor: (vendorId: string, params: any) => Promise<{ success: boolean; error?: string }>;
+  createPurchaseOrder: (params: CreatePurchaseOrderParams) => Promise<{ success: boolean; order?: PurchaseOrder; error?: string }>;
+  updatePurchaseOrderStatus: (orderId: string, status: PurchaseOrder['status']) => Promise<{ success: boolean; error?: string }>;
+  receiveItems: (orderId: string, params: ReceiveItemsParams) => Promise<{ success: boolean; error?: string }>;
+  submitStocktake: (params: StocktakeParams) => Promise<{ success: boolean; adjustments?: any[]; error?: string }>;
+  isSubmitting: boolean;
+}
+
+export function useInventoryActions(): UseInventoryActionsReturn {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createProduct = useCallback(async (params: CreateProductParams) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.createProduct(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, product: response.data?.product };
+  }, []);
+
+  const updateProduct = useCallback(async (productId: string, params: Partial<CreateProductParams>) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.updateProduct(productId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, product: response.data?.product };
+  }, []);
+
+  const deleteProduct = useCallback(async (productId: string) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.deleteProduct(productId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const adjustStock = useCallback(async (params: StockAdjustmentParams) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.adjustStock(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const createCategory = useCallback(async (params: { name: string; description?: string }) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.createCategory(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, category: response.data?.category };
+  }, []);
+
+  const updateCategory = useCallback(async (categoryId: string, params: { name?: string; description?: string; isActive?: number }) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.updateCategory(categoryId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const deleteCategory = useCallback(async (categoryId: string) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.deleteCategory(categoryId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const createVendor = useCallback(async (params: any) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.createVendor(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, vendor: response.data?.vendor };
+  }, []);
+
+  const updateVendor = useCallback(async (vendorId: string, params: any) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.updateVendor(vendorId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const createPurchaseOrder = useCallback(async (params: CreatePurchaseOrderParams) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.createPurchaseOrder(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, order: response.data?.order };
+  }, []);
+
+  const updatePurchaseOrderStatus = useCallback(async (orderId: string, status: PurchaseOrder['status']) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.updatePurchaseOrderStatus(orderId, status);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const receiveItems = useCallback(async (orderId: string, params: ReceiveItemsParams) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.receiveItems(orderId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const submitStocktake = useCallback(async (params: StocktakeParams) => {
+    setIsSubmitting(true);
+    const response = await inventoryManagementApi.submitStocktake(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, adjustments: response.data?.adjustments };
+  }, []);
+
+  return {
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    adjustStock,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    createVendor,
+    updateVendor,
+    createPurchaseOrder,
+    updatePurchaseOrderStatus,
+    receiveItems,
+    submitStocktake,
+    isSubmitting,
+  };
+}
+
+// ============================================
+// SETTINGS HOOKS
+// ============================================
+
+export function useSettings() {
+  const [settings, setSettings] = useState<SettingsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchSettings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await settingsApi.getSettings();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setSettings(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  return {
+    settings,
+    profile: settings?.profile || null,
+    salon: settings?.salon || null,
+    notificationPreferences: settings?.notificationPreferences || null,
+    appPreferences: settings?.appPreferences || null,
+    isOwner: settings?.isOwner || false,
+    staffRole: settings?.staffRole || 'staff',
+    loading,
+    error,
+    refetch: fetchSettings,
+  };
+}
+
+export function useSettingsActions() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateProfile = useCallback(async (params: Partial<UserProfile>) => {
+    setIsSubmitting(true);
+    const response = await settingsApi.updateProfile(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const updateSalon = useCallback(async (params: Partial<SalonSettings>) => {
+    setIsSubmitting(true);
+    const response = await settingsApi.updateSalon(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const updateBusinessHours = useCallback(async (params: { businessHours: BusinessHours; breakTime?: { start: string; end: string } }) => {
+    setIsSubmitting(true);
+    const response = await settingsApi.updateBusinessHours(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const updateBookingSettings = useCallback(async (params: { instantBooking?: boolean; offerDeals?: boolean; acceptGroup?: boolean }) => {
+    setIsSubmitting(true);
+    const response = await settingsApi.updateBookingSettings(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  return {
+    updateProfile,
+    updateSalon,
+    updateBusinessHours,
+    updateBookingSettings,
+    isSubmitting,
+  };
+}
+
+// ============================================
+// PAYROLL HOOKS (Zylu-inspired features)
+// ============================================
+
+export function usePayrollStats(): UseApiState<PayrollStats> {
+  const [data, setData] = useState<PayrollStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getStats();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useStaffWithSalary(): UseApiState<StaffWithSalary[]> {
+  const [data, setData] = useState<StaffWithSalary[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getStaffWithSalary();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function usePayrollCycles(year?: number): UseApiState<PayrollCycle[]> {
+  const [data, setData] = useState<PayrollCycle[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getPayrollCycles(year);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [year]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function usePayrollCycleDetails(cycleId: string) {
+  const [cycle, setCycle] = useState<PayrollCycle | null>(null);
+  const [entries, setEntries] = useState<PayrollEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!cycleId) return;
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getPayrollCycleDetails(cycleId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setCycle(response.data.cycle);
+      setEntries(response.data.entries);
+    }
+    setLoading(false);
+  }, [cycleId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { cycle, entries, loading, error, refetch: fetchData };
+}
+
+export function useStaffPayrollDetails(staffId: string, year?: number, month?: number) {
+  const [staff, setStaff] = useState<StaffWithSalary | null>(null);
+  const [currentEntry, setCurrentEntry] = useState<PayrollEntry | null>(null);
+  const [history, setHistory] = useState<PayrollEntry[]>([]);
+  const [attendance, setAttendance] = useState<{ workingDays: number; presentDays: number; leaveDays: number; absentDays: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!staffId) return;
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getStaffPayrollDetails(staffId, year, month);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setStaff(response.data.staff);
+      setCurrentEntry(response.data.currentEntry);
+      setHistory(response.data.history);
+      setAttendance(response.data.attendance);
+    }
+    setLoading(false);
+  }, [staffId, year, month]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { staff, currentEntry, history, attendance, loading, error, refetch: fetchData };
+}
+
+export function useCommissionStructures(): UseApiState<CommissionStructure[]> {
+  const [data, setData] = useState<CommissionStructure[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getCommissionStructures();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function usePayrollActions() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createPayrollCycle = useCallback(async (params: CreatePayrollCycleParams) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.createPayrollCycle(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, id: response.data?.id };
+  }, []);
+
+  const processPayroll = useCallback(async (params: ProcessPayrollParams) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.processPayroll(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const markEntryPaid = useCallback(async (entryId: string) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.markEntryPaid(entryId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const createCommissionStructure = useCallback(async (params: Omit<CommissionStructure, 'id'>) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.createCommissionStructure(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, id: response.data?.id };
+  }, []);
+
+  const updateCommissionStructure = useCallback(async (id: string, params: Partial<CommissionStructure>) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.updateCommissionStructure(id, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const exportPayrollReport = useCallback(async (cycleId: string, format: 'pdf' | 'excel') => {
+    setIsSubmitting(true);
+    const response = await payrollApi.exportPayrollReport(cycleId, format);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, downloadUrl: response.data?.downloadUrl };
+  }, []);
+
+  return {
+    createPayrollCycle,
+    processPayroll,
+    markEntryPaid,
+    createCommissionStructure,
+    updateCommissionStructure,
+    exportPayrollReport,
+    isSubmitting,
+  };
 }

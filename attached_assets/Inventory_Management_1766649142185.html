@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        violet: {
+                            600: '#8B5CF6',
+                        },
+                        fuchsia: {
+                            500: '#D946EF',
+                        },
+                        slate: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <style>::-webkit-scrollbar { display: none;}</style>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+
+<div id="mobile-container" class="max-w-md mx-auto bg-slate-900 min-h-screen relative pb-20">
+
+    <header id="inventory-header" class="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button id="back-button" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-chevron-left text-white"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg font-semibold">Product Inventory</h1>
+                    <p class="text-xs text-slate-400">Stock Management</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="relative">
+                    <i class="fa-solid fa-bell text-slate-400 text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full text-xs flex items-center justify-center">3</span>
+                </button>
+                <button>
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-slate-700">
+                </button>
+            </div>
+        </div>
+        
+        <div class="px-4 pb-3">
+            <div class="relative">
+                <input type="text" placeholder="Search products, categories..." class="w-full bg-slate-800 rounded-lg px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <button class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                    <i class="fa-solid fa-sliders text-slate-400 text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="inventory-main" class="px-4 py-4 space-y-6">
+
+        <section id="inventory-overview-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Inventory Overview</h2>
+                <button class="text-sm text-violet-400 flex items-center gap-1">
+                    <span>Export</span>
+                    <i class="fa-solid fa-download text-xs"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div id="overview-card-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                            <i class="fa-solid fa-boxes-stacked text-white"></i>
+                        </div>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            8%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">284</p>
+                    <p class="text-xs text-slate-400 mt-1">Total Products</p>
+                </div>
+
+                <div id="overview-card-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <i class="fa-solid fa-indian-rupee-sign text-white"></i>
+                        </div>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            12%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">₹4.2L</p>
+                    <p class="text-xs text-slate-400 mt-1">Stock Value</p>
+                </div>
+
+                <div id="overview-card-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
+                            <i class="fa-solid fa-triangle-exclamation text-white"></i>
+                        </div>
+                        <span class="text-xs text-red-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-down text-xs"></i>
+                            3
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">12</p>
+                    <p class="text-xs text-slate-400 mt-1">Low Stock Items</p>
+                </div>
+
+                <div id="overview-card-4" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                            <i class="fa-solid fa-clock-rotate-left text-white"></i>
+                        </div>
+                        <span class="text-xs text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-minus text-xs"></i>
+                            0%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">8</p>
+                    <p class="text-xs text-slate-400 mt-1">Pending Orders</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="quick-actions-inventory-section" class="space-y-3">
+            <h2 class="text-lg font-semibold">Quick Actions</h2>
+            
+            <div class="grid grid-cols-4 gap-3">
+                <button id="action-add-product" class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-col items-center gap-2 active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                        <i class="fa-solid fa-plus text-white text-lg"></i>
+                    </div>
+                    <span class="text-xs text-center">Add Product</span>
+                </button>
+
+                <button id="action-scan-barcode" class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-col items-center gap-2 active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center">
+                        <i class="fa-solid fa-barcode text-violet-400 text-lg"></i>
+                    </div>
+                    <span class="text-xs text-center">Scan Code</span>
+                </button>
+
+                <button id="action-bulk-update" class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-col items-center gap-2 active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center">
+                        <i class="fa-solid fa-list-check text-violet-400 text-lg"></i>
+                    </div>
+                    <span class="text-xs text-center">Bulk Update</span>
+                </button>
+
+                <button id="action-reorder" class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-col items-center gap-2 active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center">
+                        <i class="fa-solid fa-rotate text-violet-400 text-lg"></i>
+                    </div>
+                    <span class="text-xs text-center">Reorder</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="critical-alerts-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Critical Stock Alerts</h2>
+                <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">12 Items</span>
+            </div>
+
+            <div class="space-y-3">
+                <div id="alert-card-1" class="bg-slate-800 rounded-xl p-4 border-l-4 border-red-500">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-14 h-14 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-droplet text-violet-400 text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Hair Color - Chestnut Brown</h3>
+                                <p class="text-xs text-slate-400 mt-1">Category: Hair Care</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">Critical</span>
+                                    <span class="text-xs text-slate-400">SKU: HC-CB-001</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Current Stock</span>
+                            <span class="text-sm font-semibold text-red-400">2 units</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-red-500 rounded-full" style="width: 10%"></div>
+                            </div>
+                            <span class="text-xs text-red-400">10%</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                            <span>Min Level: 5 units</span>
+                            <span>Max Level: 20 units</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-eye mr-1"></i>
+                            View Details
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-cart-plus mr-1"></i>
+                            Reorder Now
+                        </button>
+                    </div>
+                </div>
+
+                <div id="alert-card-2" class="bg-slate-800 rounded-xl p-4 border-l-4 border-red-500">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-14 h-14 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-pump-soap text-violet-400 text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Keratin Treatment Serum</h3>
+                                <p class="text-xs text-slate-400 mt-1">Category: Hair Treatment</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">Critical</span>
+                                    <span class="text-xs text-slate-400">SKU: HT-KTS-003</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Current Stock</span>
+                            <span class="text-sm font-semibold text-red-400">1 unit</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-red-500 rounded-full" style="width: 8%"></div>
+                            </div>
+                            <span class="text-xs text-red-400">8%</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                            <span>Min Level: 3 units</span>
+                            <span>Max Level: 12 units</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-eye mr-1"></i>
+                            View Details
+                        </button>
+                        <button class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-cart-plus mr-1"></i>
+                            Reorder Now
+                        </button>
+                    </div>
+                </div>
+
+                <div id="alert-card-3" class="bg-slate-800 rounded-xl p-4 border-l-4 border-amber-500">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-14 h-14 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-bottle-droplet text-violet-400 text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Shampoo - Keratin Plus 500ml</h3>
+                                <p class="text-xs text-slate-400 mt-1">Category: Hair Care</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full">Low Stock</span>
+                                    <span class="text-xs text-slate-400">SKU: HC-SKP-005</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Current Stock</span>
+                            <span class="text-sm font-semibold text-amber-400">5 units</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-amber-500 rounded-full" style="width: 35%"></div>
+                            </div>
+                            <span class="text-xs text-amber-400">35%</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                            <span>Min Level: 8 units</span>
+                            <span>Max Level: 15 units</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-eye mr-1"></i>
+                            View Details
+                        </button>
+                        <button class="flex-1 bg-slate-700 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                            <i class="fa-solid fa-cart-plus mr-1"></i>
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full bg-slate-800 border border-slate-700 text-violet-400 py-3 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                View All Low Stock Items (9 more)
+                <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+        </section>
+
+        <section id="category-filters-section" class="space-y-3">
+            <h2 class="text-lg font-semibold">Browse by Category</h2>
+            
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white rounded-lg text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                    All Products
+                </button>
+                <button class="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                    Hair Care
+                </button>
+                <button class="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                    Skin Care
+                </button>
+                <button class="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                    Makeup
+                </button>
+                <button class="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                    Nail Care
+                </button>
+                <button class="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                    Tools
+                </button>
+            </div>
+        </section>
+
+        <section id="stock-trends-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Stock Movement Trends</h2>
+                <div class="flex gap-2">
+                    <button class="text-xs bg-violet-600 text-white px-3 py-1 rounded-full">Week</button>
+                    <button class="text-xs bg-slate-700 text-slate-400 px-3 py-1 rounded-full">Month</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <div id="stock-trend-chart" style="height: 250px;"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
+                    <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2">
+                        <i class="fa-solid fa-arrow-trend-up text-green-400"></i>
+                    </div>
+                    <p class="text-lg font-bold text-green-400">+142</p>
+                    <p class="text-xs text-slate-400 mt-1">Stock In</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
+                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-2">
+                        <i class="fa-solid fa-arrow-trend-down text-red-400"></i>
+                    </div>
+                    <p class="text-lg font-bold text-red-400">-89</p>
+                    <p class="text-xs text-slate-400 mt-1">Stock Out</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
+                    <div class="w-10 h-10 rounded-full bg-violet-600/20 flex items-center justify-center mx-auto mb-2">
+                        <i class="fa-solid fa-rotate text-violet-400"></i>
+                    </div>
+                    <p class="text-lg font-bold text-violet-400">3.2x</p>
+                    <p class="text-xs text-slate-400 mt-1">Turnover</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="all-products-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">All Products</h2>
+                <div class="flex items-center gap-2">
+                    <button class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
+                        <i class="fa-solid fa-grid text-violet-400 text-sm"></i>
+                    </button>
+                    <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                        <i class="fa-solid fa-list text-slate-400 text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div id="product-card-1" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="flex gap-3 p-3">
+                        <div class="w-20 h-20 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-bottle-droplet text-violet-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-sm">Organic Argan Oil Shampoo</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Hair Care • 500ml</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400 text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">In Stock</span>
+                                <span class="text-xs text-slate-400">SKU: HC-OAS-012</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div>
+                                    <p class="text-xs text-slate-400">Stock Level</p>
+                                    <p class="text-sm font-semibold">24 units</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400">Price</p>
+                                    <p class="text-sm font-semibold text-violet-400">₹850</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 85%"></div>
+                                </div>
+                                <span class="text-xs text-green-400">85%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex border-t border-slate-700">
+                        <button class="flex-1 py-3 text-sm font-medium text-slate-300 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-pen mr-1"></i>
+                            Edit
+                        </button>
+                        <div class="w-px bg-slate-700"></div>
+                        <button class="flex-1 py-3 text-sm font-medium text-violet-400 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i>
+                            Adjust Stock
+                        </button>
+                    </div>
+                </div>
+
+                <div id="product-card-2" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="flex gap-3 p-3">
+                        <div class="w-20 h-20 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles text-violet-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-sm">HD Foundation - Natural Beige</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Makeup • 30ml</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400 text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">In Stock</span>
+                                <span class="text-xs text-slate-400">SKU: MK-HDF-028</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div>
+                                    <p class="text-xs text-slate-400">Stock Level</p>
+                                    <p class="text-sm font-semibold">18 units</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400">Price</p>
+                                    <p class="text-sm font-semibold text-violet-400">₹1,250</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 72%"></div>
+                                </div>
+                                <span class="text-xs text-green-400">72%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex border-t border-slate-700">
+                        <button class="flex-1 py-3 text-sm font-medium text-slate-300 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-pen mr-1"></i>
+                            Edit
+                        </button>
+                        <div class="w-px bg-slate-700"></div>
+                        <button class="flex-1 py-3 text-sm font-medium text-violet-400 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i>
+                            Adjust Stock
+                        </button>
+                    </div>
+                </div>
+
+                <div id="product-card-3" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="flex gap-3 p-3">
+                        <div class="w-20 h-20 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-spa text-violet-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-sm">Vitamin C Brightening Serum</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Skin Care • 50ml</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400 text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full">Low Stock</span>
+                                <span class="text-xs text-slate-400">SKU: SC-VCS-045</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div>
+                                    <p class="text-xs text-slate-400">Stock Level</p>
+                                    <p class="text-sm font-semibold">7 units</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400">Price</p>
+                                    <p class="text-sm font-semibold text-violet-400">₹1,850</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-amber-500 rounded-full" style="width: 35%"></div>
+                                </div>
+                                <span class="text-xs text-amber-400">35%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex border-t border-slate-700">
+                        <button class="flex-1 py-3 text-sm font-medium text-slate-300 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-pen mr-1"></i>
+                            Edit
+                        </button>
+                        <div class="w-px bg-slate-700"></div>
+                        <button class="flex-1 py-3 text-sm font-medium text-violet-400 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i>
+                            Adjust Stock
+                        </button>
+                    </div>
+                </div>
+
+                <div id="product-card-4" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="flex gap-3 p-3">
+                        <div class="w-20 h-20 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-hand-sparkles text-violet-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-sm">Gel Nail Polish - Ruby Red</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Nail Care • 15ml</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400 text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">In Stock</span>
+                                <span class="text-xs text-slate-400">SKU: NC-GNP-067</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div>
+                                    <p class="text-xs text-slate-400">Stock Level</p>
+                                    <p class="text-sm font-semibold">32 units</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400">Price</p>
+                                    <p class="text-sm font-semibold text-violet-400">₹450</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 92%"></div>
+                                </div>
+                                <span class="text-xs text-green-400">92%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex border-t border-slate-700">
+                        <button class="flex-1 py-3 text-sm font-medium text-slate-300 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-pen mr-1"></i>
+                            Edit
+                        </button>
+                        <div class="w-px bg-slate-700"></div>
+                        <button class="flex-1 py-3 text-sm font-medium text-violet-400 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i>
+                            Adjust Stock
+                        </button>
+                    </div>
+                </div>
+
+                <div id="product-card-5" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="flex gap-3 p-3">
+                        <div class="w-20 h-20 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-scissors text-violet-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-sm">Professional Hair Cutting Scissors</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Tools • 6.5 inch</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400 text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">In Stock</span>
+                                <span class="text-xs text-slate-400">SKU: TL-HCS-089</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div>
+                                    <p class="text-xs text-slate-400">Stock Level</p>
+                                    <p class="text-sm font-semibold">12 units</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400">Price</p>
+                                    <p class="text-sm font-semibold text-violet-400">₹3,200</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 60%"></div>
+                                </div>
+                                <span class="text-xs text-green-400">60%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex border-t border-slate-700">
+                        <button class="flex-1 py-3 text-sm font-medium text-slate-300 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-pen mr-1"></i>
+                            Edit
+                        </button>
+                        <div class="w-px bg-slate-700"></div>
+                        <button class="flex-1 py-3 text-sm font-medium text-violet-400 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i>
+                            Adjust Stock
+                        </button>
+                    </div>
+                </div>
+
+                <div id="product-card-6" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="flex gap-3 p-3">
+                        <div class="w-20 h-20 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-spray-can text-violet-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-sm">Volumizing Hair Spray - Strong Hold</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Hair Care • 300ml</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-ellipsis-vertical text-slate-400 text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">In Stock</span>
+                                <span class="text-xs text-slate-400">SKU: HC-VHS-091</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div>
+                                    <p class="text-xs text-slate-400">Stock Level</p>
+                                    <p class="text-sm font-semibold">28 units</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400">Price</p>
+                                    <p class="text-sm font-semibold text-violet-400">₹680</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 78%"></div>
+                                </div>
+                                <span class="text-xs text-green-400">78%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex border-t border-slate-700">
+                        <button class="flex-1 py-3 text-sm font-medium text-slate-300 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-pen mr-1"></i>
+                            Edit
+                        </button>
+                        <div class="w-px bg-slate-700"></div>
+                        <button class="flex-1 py-3 text-sm font-medium text-violet-400 active:bg-slate-700 transition-colors">
+                            <i class="fa-solid fa-plus mr-1"></i>
+                            Adjust Stock
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full bg-slate-800 border border-slate-700 text-violet-400 py-3 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                Load More Products (278 remaining)
+                <i class="fa-solid fa-chevron-down ml-1"></i>
+            </button>
+        </section>
+
+        <section id="top-selling-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Top Selling Products</h2>
+                <button class="text-sm text-violet-400">View Report</button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 space-y-3">
+                <div id="top-product-1" class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+                            <span class="text-white font-bold">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Keratin Treatment Serum</h3>
+                            <p class="text-xs text-slate-400">142 units sold</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-400">₹28,400</p>
+                        <p class="text-xs text-slate-400">Revenue</p>
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-700"></div>
+
+                <div id="top-product-2" class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <span class="text-slate-300 font-bold">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">HD Foundation - Natural Beige</h3>
+                            <p class="text-xs text-slate-400">98 units sold</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-400">₹22,500</p>
+                        <p class="text-xs text-slate-400">Revenue</p>
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-700"></div>
+
+                <div id="top-product-3" class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <span class="text-slate-300 font-bold">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Argan Oil Shampoo</h3>
+                            <p class="text-xs text-slate-400">86 units sold</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-400">₹18,200</p>
+                        <p class="text-xs text-slate-400">Revenue</p>
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-700"></div>
+
+                <div id="top-product-4" class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <span class="text-slate-300 font-bold">4</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Vitamin C Serum</h3>
+                            <p class="text-xs text-slate-400">72 units sold</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-400">₹16,800</p>
+                        <p class="text-xs text-slate-400">Revenue</p>
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-700"></div>
+
+                <div id="top-product-5" class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <span class="text-slate-300 font-bold">5</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Gel Nail Polish Set</h3>
+                            <p class="text-xs text-slate-400">68 units sold</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-400">₹15,300</p>
+                        <p class="text-xs text-slate-400">Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recent-stock-changes-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Recent Stock Changes</h2>
+                <button class="text-sm text-violet-400">View History</button>
+            </div>
+
+            <div class="space-y-3">
+                <div id="stock-change-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-arrow-up text-green-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Stock Added</h3>
+                                <p class="text-sm text-slate-400 mt-1">Keratin Treatment Serum</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">+15 units</span>
+                                    <span class="text-xs text-slate-400">by Rahul Kumar</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">2 hours ago</p>
+                </div>
+
+                <div id="stock-change-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-arrow-down text-red-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Stock Used</h3>
+                                <p class="text-sm text-slate-400 mt-1">HD Foundation - Natural Beige</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">-3 units</span>
+                                    <span class="text-xs text-slate-400">for services</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">4 hours ago</p>
+                </div>
+
+                <div id="stock-change-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-rotate text-amber-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Stock Adjusted</h3>
+                                <p class="text-sm text-slate-400 mt-1">Argan Oil Shampoo</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full">Correction</span>
+                                    <span class="text-xs text-slate-400">by Anjali Reddy</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">6 hours ago</p>
+                </div>
+
+                <div id="stock-change-4" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-truck text-blue-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">New Delivery</h3>
+                                <p class="text-sm text-slate-400 mt-1">Bulk order received - 8 products</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">+124 units total</span>
+                                    <span class="text-xs text-slate-400">Invoice #INV-2847</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Yesterday at 3:45 PM</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="supplier-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Suppliers</h2>
+                <button class="text-sm text-violet-400">Manage</button>
+            </div>
+
+            <div class="space-y-3">
+                <div id="supplier-card-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                                <i class="fa-solid fa-building text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Beauty Supply Co.</h3>
+                                <p class="text-sm text-slate-400">Primary Supplier</p>
+                            </div>
+                        </div>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                            <i class="fa-solid fa-phone text-violet-400"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-violet-400">142</p>
+                            <p class="text-xs text-slate-400 mt-1">Products</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-green-400">₹2.8L</p>
+                            <p class="text-xs text-slate-400 mt-1">Total Value</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-amber-400">4.7</p>
+                            <p class="text-xs text-slate-400 mt-1">Rating</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="supplier-card-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center">
+                                <i class="fa-solid fa-building text-violet-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">Premium Cosmetics Ltd.</h3>
+                                <p class="text-sm text-slate-400">Secondary Supplier</p>
+                            </div>
+                        </div>
+                        <button class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                            <i class="fa-solid fa-phone text-violet-400"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-violet-400">86</p>
+                            <p class="text-xs text-slate-400 mt-1">Products</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-green-400">₹1.4L</p>
+                            <p class="text-xs text-slate-400 mt-1">Total Value</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-amber-400">4.5</p>
+                            <p class="text-xs text-slate-400 mt-1">Rating</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="inventory-value-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Inventory Value Breakdown</h2>
+                <button class="text-sm text-violet-400">Details</button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <div id="inventory-value-chart" style="height: 250px;"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-3 h-3 rounded-full bg-violet-600"></div>
+                        <span class="text-sm text-slate-400">Hair Care</span>
+                    </div>
+                    <p class="text-xl font-bold">₹1.8L</p>
+                    <p class="text-xs text-slate-400 mt-1">42% of total</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-3 h-3 rounded-full bg-fuchsia-500"></div>
+                        <span class="text-sm text-slate-400">Skin Care</span>
+                    </div>
+                    <p class="text-xl font-bold">₹1.2L</p>
+                    <p class="text-xs text-slate-400 mt-1">28% of total</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-3 h-3 rounded-full bg-pink-500"></div>
+                        <span class="text-sm text-slate-400">Makeup</span>
+                    </div>
+                    <p class="text-xl font-bold">₹82K</p>
+                    <p class="text-xs text-slate-400 mt-1">19% of total</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                        <span class="text-sm text-slate-400">Others</span>
+                    </div>
+                    <p class="text-xl font-bold">₹48K</p>
+                    <p class="text-xs text-slate-400 mt-1">11% of total</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pending-orders-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Pending Restock Orders</h2>
+                <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full">8 Orders</span>
+            </div>
+
+            <div class="space-y-3">
+                <div id="pending-order-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 class="font-semibold text-sm">Order #PO-2847</h3>
+                            <p class="text-xs text-slate-400 mt-1">Beauty Supply Co.</p>
+                        </div>
+                        <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full">In Transit</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Products</span>
+                            <span class="font-semibold">12 items</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Order Value</span>
+                            <span class="font-semibold text-violet-400">₹24,500</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Expected Delivery</span>
+                            <span class="font-semibold">Tomorrow</span>
+                        </div>
+                    </div>
+                    <button class="w-full mt-3 bg-slate-700 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        <i class="fa-solid fa-truck mr-1"></i>
+                        Track Order
+                    </button>
+                </div>
+
+                <div id="pending-order-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 class="font-semibold text-sm">Order #PO-2846</h3>
+                            <p class="text-xs text-slate-400 mt-1">Premium Cosmetics Ltd.</p>
+                        </div>
+                        <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">Processing</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Products</span>
+                            <span class="font-semibold">8 items</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Order Value</span>
+                            <span class="font-semibold text-violet-400">₹18,200</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Expected Delivery</span>
+                            <span class="font-semibold">In 3 days</span>
+                        </div>
+                    </div>
+                    <button class="w-full mt-3 bg-slate-700 text-white py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        <i class="fa-solid fa-eye mr-1"></i>
+                        View Details
+                    </button>
+                </div>
+            </div>
+
+            <button class="w-full bg-slate-800 border border-slate-700 text-violet-400 py-3 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                View All Pending Orders (6 more)
+                <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+        </section>
+
+        <section id="quick-stats-inventory-section" class="space-y-3 mb-6">
+            <h2 class="text-lg font-semibold">Quick Statistics</h2>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fa-solid fa-box-open text-violet-400 text-xl"></i>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            15%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">94%</p>
+                    <p class="text-xs text-slate-400 mt-1">Stock Availability</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fa-solid fa-chart-line text-violet-400 text-xl"></i>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            22%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">3.8x</p>
+                    <p class="text-xs text-slate-400 mt-1">Avg Turnover Rate</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fa-solid fa-calendar-days text-violet-400 text-xl"></i>
+                        <span class="text-xs text-amber-400 flex items-center gap-1">
+                            <i class="fa-solid fa-minus text-xs"></i>
+                            0%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">45</p>
+                    <p class="text-xs text-slate-400 mt-1">Days Stock on Hand</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fa-solid fa-indian-rupee-sign text-violet-400 text-xl"></i>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            18%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">₹1.2L</p>
+                    <p class="text-xs text-slate-400 mt-1">Monthly Usage Value</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-navigation" class="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 max-w-md mx-auto">
+        <div class="flex items-center justify-around py-2">
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-house text-xl"></i>
+                <span class="text-xs">Home</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-calendar text-xl"></i>
+                <span class="text-xs">Calendar</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 -mt-8">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/50">
+                    <i class="fa-solid fa-plus text-white text-2xl"></i>
+                </div>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-users text-xl"></i>
+                <span class="text-xs">Clients</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-violet-400">
+                <i class="fa-solid fa-ellipsis text-xl"></i>
+                <span class="text-xs font-medium">More</span>
+            </button>
+        </div>
+    </nav>
+
+    <button id="fab-button" class="fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full shadow-lg shadow-violet-500/50 flex items-center justify-center active:scale-95 transition-transform">
+        <i class="fa-solid fa-barcode text-white text-xl"></i>
+    </button>
+
+</div>
+
+<script>
+window.addEventListener('load', function() {
+    try {
+        var stockTrendData = [{
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Stock In',
+            x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            y: [45, 32, 58, 42, 68, 52, 48],
+            line: {
+                color: '#22C55E',
+                width: 3
+            }
+        }, {
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Stock Out',
+            x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            y: [28, 35, 42, 38, 45, 40, 35],
+            line: {
+                color: '#EF4444',
+                width: 3
+            }
+        }];
+
+        var stockTrendLayout = {
+            margin: { t: 10, r: 10, b: 30, l: 50 },
+            plot_bgcolor: '#1E293B',
+            paper_bgcolor: '#1E293B',
+            xaxis: {
+                color: '#94A3B8',
+                gridcolor: '#334155'
+            },
+            yaxis: {
+                color: '#94A3B8',
+                gridcolor: '#334155',
+                title: 'Units'
+            },
+            showlegend: true,
+            legend: {
+                x: 0,
+                y: 1,
+                font: {
+                    color: '#94A3B8'
+                }
+            }
+        };
+
+        var config = {
+            responsive: true,
+            displayModeBar: false,
+            displaylogo: false
+        };
+
+        Plotly.newPlot('stock-trend-chart', stockTrendData, stockTrendLayout, config);
+
+        var inventoryValueData = [{
+            type: 'pie',
+            labels: ['Hair Care', 'Skin Care', 'Makeup', 'Nail Care', 'Tools'],
+            values: [180000, 120000, 82000, 28000, 20000],
+            marker: {
+                colors: ['#8B5CF6', '#D946EF', '#EC4899', '#F59E0B', '#22C55E']
+            },
+            hole: 0.4
+        }];
+
+        var inventoryValueLayout = {
+            margin: { t: 10, r: 10, b: 10, l: 10 },
+            plot_bgcolor: '#1E293B',
+            paper_bgcolor: '#1E293B',
+            showlegend: true,
+            legend: {
+                x: 0,
+                y: 0.5,
+                font: {
+                    color: '#94A3B8',
+                    size: 10
+                }
+            }
+        };
+
+        Plotly.newPlot('inventory-value-chart', inventoryValueData, inventoryValueLayout, config);
+    } catch(e) {
+        console.error('Chart rendering error:', e);
+    }
+});
+</script>
+
+</body>
+</html>

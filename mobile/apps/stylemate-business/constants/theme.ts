@@ -1,7 +1,11 @@
 export const COLORS = {
   background: '#0F172A',
+  backgroundLight: '#1E293B',
+  card: '#1E293B',
   cardBg: '#1E293B',
   cardBorder: '#334155',
+  border: '#334155',
+  text: '#F8FAFC',
   textPrimary: '#F8FAFC',
   textSecondary: '#94A3B8',
   textMuted: '#64748B',
@@ -9,6 +13,7 @@ export const COLORS = {
   fuchsia: '#D946EF',
   green: '#22C55E',
   greenLight: '#10B981',
+  success: '#22C55E',
   amber: '#F59E0B',
   blue: '#3B82F6',
   red: '#EF4444',
@@ -30,6 +35,7 @@ export const GRADIENTS = {
   info: [COLORS.blue, COLORS.cyan] as [string, string],
   danger: [COLORS.red, COLORS.pink] as [string, string],
   disabled: [COLORS.cardBorder, COLORS.cardBorder] as [string, string],
+  card: [COLORS.card, COLORS.cardBorder] as [string, string],
 } as const;
 
 export const SPACING = {
@@ -48,8 +54,11 @@ export const FONT_SIZES = {
   md: 14,
   lg: 16,
   xl: 18,
-  xxl: 24,
-  xxxl: 32,
+  xxl: 20,
+  xxxl: 24,
+  display: 28,
+  hero: 32,
+  giant: 48,
 } as const;
 
 export const BORDER_RADIUS = {

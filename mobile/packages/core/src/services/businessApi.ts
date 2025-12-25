@@ -1459,4 +1459,1142 @@ export const packagesManagementApi = {
 // Merge packages API into businessApi
 Object.assign(businessApi, packagesManagementApi);
 
+// ============================================
+// MEMBERSHIP MANAGEMENT TYPES
+// ============================================
+
+export type MembershipPlanType = 'discount' | 'credit' | 'packaged';
+export type MembershipBillingType = 'one_time' | 'recurring';
+export type MembershipStatus = 'active' | 'paused' | 'cancelled' | 'expired' | 'pending_payment';
+
+export interface MembershipPlanService {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  servicePrice: number;
+  quantityPerMonth: number;
+  isUnlimited: boolean;
+}
+
+export interface MembershipPlan {
+  id: string;
+  salonId: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  planType: MembershipPlanType;
+  durationMonths: number;
+  priceInPaisa: number;
+  billingType: MembershipBillingType;
+  monthlyPriceInPaisa: number | null;
+  discountPercentage: number | null;
+  discountAppliesTo: 'all' | 'services' | 'products' | null;
+  creditAmountInPaisa: number | null;
+  bonusPercentage: number | null;
+  creditsRollover: number;
+  priorityBooking: number;
+  freeCancellation: number;
+  birthdayBonusInPaisa: number | null;
+  referralBonusInPaisa: number | null;
+  additionalPerks: string[] | null;
+  maxMembers: number | null;
+  maxUsesPerMonth: number | null;
+  isActive: number;
+  validFrom: string | null;
+  validUntil: string | null;
+  sortOrder: number;
+  memberCount: number;
+  totalRevenue: number;
+  includedServices?: MembershipPlanService[];
+  planColor?: string;
+  isOnlineSalesEnabled?: boolean;
+  isRedemptionEnabled?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MembershipStats {
+  totalPlans: number;
+  activePlans: number;
+  inactivePlans: number;
+  totalMembers: number;
+  activeMembers: number;
+  recurringRevenue: number;
+  churnRate: number;
+}
+
+export interface MembershipsListResponse {
+  plans: MembershipPlan[];
+  stats: MembershipStats;
+  total: number;
+}
+
+export interface MembershipAnalytics {
+  totalMembers: number;
+  activeMembers: number;
+  newMembersThisMonth: number;
+  recurringRevenue: number;
+  churnRate: number;
+  retentionRate: number;
+  avgMemberLifetime: number;
+  revenueByPlan: { planId: string; planName: string; revenue: number }[];
+  membersByStatus: { status: string; count: number }[];
+}
+
+export interface MembershipMember {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string | null;
+  customerAvatar: string | null;
+  planId: string;
+  planName: string;
+  planType: MembershipPlanType;
+  planColor: string;
+  status: MembershipStatus;
+  startDate: string;
+  endDate: string;
+  nextBillingDate: string | null;
+  creditBalanceInPaisa: number;
+  totalPaidInPaisa: number;
+  autoRenew: number;
+  pausedAt: string | null;
+  cancelledAt: string | null;
+  sessionsUsed?: number;
+  sessionsRemaining?: number;
+  createdAt: string;
+}
+
+export interface MembersListResponse {
+  members: MembershipMember[];
+  stats: {
+    total: number;
+    active: number;
+    paused: number;
+    expiringSoon: number;
+    expired: number;
+    cancelled: number;
+  };
+  total: number;
+}
+
+export interface CreateMembershipPlanParams {
+  name: string;
+  description?: string;
+  planType: MembershipPlanType;
+  durationMonths: number;
+  priceInPaisa: number;
+  billingType: MembershipBillingType;
+  monthlyPriceInPaisa?: number;
+  discountPercentage?: number;
+  discountAppliesTo?: 'all' | 'services' | 'products';
+  creditAmountInPaisa?: number;
+  bonusPercentage?: number;
+  creditsRollover?: boolean;
+  priorityBooking?: boolean;
+  freeCancellation?: boolean;
+  birthdayBonusInPaisa?: number;
+  referralBonusInPaisa?: number;
+  additionalPerks?: string[];
+  maxMembers?: number;
+  maxUsesPerMonth?: number;
+  isActive?: boolean;
+  validFrom?: string;
+  validUntil?: string;
+  planColor?: string;
+  isOnlineSalesEnabled?: boolean;
+  isRedemptionEnabled?: boolean;
+  includedServices?: {
+    serviceId: string;
+    quantityPerMonth: number;
+    isUnlimited?: boolean;
+  }[];
+}
+
+export interface UpdateMembershipPlanParams extends Partial<CreateMembershipPlanParams> {
+  id: string;
+}
+
+export interface MembershipPlanMutationResponse {
+  success: boolean;
+  plan: MembershipPlan;
+  message: string;
+}
+
+// Membership Management API
+export const membershipsManagementApi = {
+  // Get all membership plans with stats (for management)
+  async getMembershipPlans(
+    status?: 'all' | 'active' | 'inactive',
+    search?: string
+  ): Promise<ApiResponse<MembershipsListResponse>> {
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.append('active', status === 'active' ? 'true' : 'false');
+    if (search) params.append('search', search);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return apiRequest<MembershipsListResponse>(`/api/mobile/business/membership-plans/manage${query}`);
+  },
+
+  // Get single membership plan detail
+  async getMembershipPlanDetail(planId: string): Promise<ApiResponse<{ plan: MembershipPlan }>> {
+    return apiRequest<{ plan: MembershipPlan }>(`/api/membership-plans/${planId}`);
+  },
+
+  // Get membership analytics
+  async getMembershipAnalytics(): Promise<ApiResponse<MembershipAnalytics>> {
+    return apiRequest<MembershipAnalytics>(`/api/mobile/business/membership-analytics`);
+  },
+
+  // Get members list
+  async getMembers(
+    status?: string,
+    planId?: string,
+    search?: string,
+    limit?: number,
+    offset?: number
+  ): Promise<ApiResponse<MembersListResponse>> {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (planId) params.append('planId', planId);
+    if (search) params.append('search', search);
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return apiRequest<MembersListResponse>(`/api/mobile/business/members${query}`);
+  },
+
+  // Create new membership plan
+  async createMembershipPlan(params: CreateMembershipPlanParams): Promise<ApiResponse<MembershipPlanMutationResponse>> {
+    return apiRequest<MembershipPlanMutationResponse>('/api/mobile/business/membership-plans', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Update membership plan
+  async updateMembershipPlan(params: UpdateMembershipPlanParams): Promise<ApiResponse<MembershipPlanMutationResponse>> {
+    return apiRequest<MembershipPlanMutationResponse>(`/api/membership-plans/${params.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Toggle plan active status
+  async togglePlanStatus(
+    planId: string,
+    isActive: boolean
+  ): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/membership-plans/${planId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ isActive: isActive ? 1 : 0 }),
+    });
+  },
+
+  // Delete membership plan
+  async deleteMembershipPlan(planId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/membership-plans/${planId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Duplicate membership plan
+  async duplicateMembershipPlan(planId: string): Promise<ApiResponse<MembershipPlanMutationResponse>> {
+    return apiRequest<MembershipPlanMutationResponse>(`/api/membership-plans/${planId}/duplicate`, {
+      method: 'POST',
+    });
+  },
+
+  // Pause member's membership
+  async pauseMembership(membershipId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/memberships/${membershipId}/pause`, {
+      method: 'POST',
+    });
+  },
+
+  // Resume member's membership
+  async resumeMembership(membershipId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/memberships/${membershipId}/resume`, {
+      method: 'POST',
+    });
+  },
+
+  // Cancel member's membership
+  async cancelMembership(membershipId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/memberships/${membershipId}/cancel`, {
+      method: 'POST',
+    });
+  },
+
+  // Send renewal reminder
+  async sendRenewalReminder(membershipId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/memberships/${membershipId}/send-reminder`, {
+      method: 'POST',
+    });
+  },
+
+  // Get available services for membership (packaged type)
+  async getAvailableServicesForMembership(): Promise<ApiResponse<{ services: ServiceListItem[]; byCategory: Record<string, ServiceListItem[]> }>> {
+    return apiRequest(`/api/mobile/business/membership-plans/available-services`);
+  },
+};
+
+// Merge memberships API into businessApi
+Object.assign(businessApi, membershipsManagementApi);
+
+// ===== INVENTORY MANAGEMENT TYPES =====
+
+export interface InventoryStats {
+  totalProducts: number;
+  activeProducts: number;
+  totalStockValue: number;
+  totalStockValueFormatted: string;
+  lowStockCount: number;
+  outOfStockCount: number;
+  reorderNeededCount: number;
+  expiringCount: number;
+  categoryCount: number;
+  vendorCount: number;
+  pendingOrdersCount: number;
+}
+
+export interface InventoryProduct {
+  id: string;
+  salonId: string;
+  categoryId?: string;
+  vendorId?: string;
+  sku: string;
+  name: string;
+  description?: string;
+  brand?: string;
+  size?: string;
+  unit: string;
+  costPriceInPaisa: number;
+  sellingPriceInPaisa?: number;
+  currency: string;
+  currentStock: string;
+  minimumStock: string;
+  maximumStock?: string;
+  reorderPoint?: string;
+  reorderQuantity?: string;
+  leadTimeDays: number;
+  expiryDate?: string;
+  batchNumber?: string;
+  barcode?: string;
+  location?: string;
+  isActive: number;
+  isRetailItem: number;
+  trackStock: number;
+  lowStockAlert: number;
+  availableForRetail?: number;
+  retailPriceInPaisa?: number;
+  retailDescription?: string;
+  retailStockAllocated?: number;
+  featured?: number;
+  notes?: string;
+  tags: string[];
+  metadata?: { imageUrl?: string };
+  createdAt: string;
+  updatedAt: string;
+  categoryName?: string;
+  vendorName?: string;
+  stockStatus: 'out' | 'low' | 'good' | 'overstock';
+  costPriceFormatted: string;
+  sellingPriceFormatted?: string;
+  retailPriceFormatted?: string;
+}
+
+export interface ProductCategory {
+  id: string;
+  salonId: string;
+  name: string;
+  description?: string;
+  parentCategoryId?: string;
+  isActive: number;
+  sortOrder: number;
+  createdAt: string;
+  productCount: number;
+}
+
+export interface Vendor {
+  id: string;
+  salonId: string;
+  name: string;
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country: string;
+  website?: string;
+  taxId?: string;
+  paymentTerms?: string;
+  notes?: string;
+  status: 'active' | 'inactive' | 'suspended';
+  rating: string;
+  createdAt: string;
+  updatedAt: string;
+  productCount?: number;
+  orderCount?: number;
+  totalOrdered?: number;
+  totalOrderedFormatted?: string;
+}
+
+export interface StockMovement {
+  id: string;
+  salonId: string;
+  productId: string;
+  type: 'receive' | 'usage' | 'adjustment' | 'transfer' | 'damage' | 'return' | 'expired';
+  quantity: string;
+  unit: string;
+  unitCostInPaisa?: number;
+  totalCostInPaisa?: number;
+  previousStock: string;
+  newStock: string;
+  reason?: string;
+  reference?: string;
+  referenceId?: string;
+  referenceType?: string;
+  staffId?: string;
+  staffName?: string;
+  notes?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  createdAt: string;
+  createdAtFormatted?: string;
+  productName?: string;
+  productSku?: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  salonId: string;
+  vendorId: string;
+  orderNumber: string;
+  status: 'draft' | 'sent' | 'confirmed' | 'received' | 'cancelled';
+  orderDate: string;
+  expectedDeliveryDate?: string;
+  actualDeliveryDate?: string;
+  subtotalInPaisa: number;
+  taxInPaisa: number;
+  shippingInPaisa: number;
+  discountInPaisa: number;
+  totalInPaisa: number;
+  currency: string;
+  paymentTerms?: string;
+  paymentStatus?: string;
+  notes?: string;
+  internalNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+  vendorName?: string;
+  vendorEmail?: string;
+  vendorPhone?: string;
+  totalFormatted?: string;
+  subtotalFormatted?: string;
+  orderDateFormatted?: string;
+  expectedDeliveryFormatted?: string;
+}
+
+export interface PurchaseOrderItem {
+  id: string;
+  purchaseOrderId: string;
+  productId: string;
+  quantity: string;
+  unit: string;
+  unitCostInPaisa: number;
+  totalCostInPaisa: number;
+  receivedQuantity?: string;
+  notes?: string;
+  createdAt: string;
+  productName?: string;
+  productSku?: string;
+  productUnit?: string;
+  unitCostFormatted?: string;
+  totalCostFormatted?: string;
+}
+
+export interface ReorderSuggestion {
+  productId: string;
+  productName: string;
+  sku: string;
+  vendorId?: string;
+  vendorName?: string;
+  currentStock: number;
+  reorderPoint: number;
+  suggestedQuantity: number;
+  estimatedCost: number;
+  estimatedCostFormatted: string;
+  leadTimeDays?: number;
+  urgency: 'critical' | 'low';
+}
+
+export interface CreateProductParams {
+  categoryId?: string;
+  vendorId?: string;
+  sku: string;
+  name: string;
+  description?: string;
+  brand?: string;
+  size?: string;
+  unit?: string;
+  costPriceInPaisa: number;
+  sellingPriceInPaisa?: number;
+  currentStock?: number;
+  minimumStock?: number;
+  maximumStock?: number;
+  reorderPoint?: number;
+  reorderQuantity?: number;
+  leadTimeDays?: number;
+  expiryDate?: string;
+  batchNumber?: string;
+  barcode?: string;
+  location?: string;
+  isActive?: number;
+  isRetailItem?: number;
+  trackStock?: number;
+  lowStockAlert?: number;
+  availableForRetail?: number;
+  retailPriceInPaisa?: number;
+  retailDescription?: string;
+  retailStockAllocated?: number;
+  featured?: number;
+  notes?: string;
+  tags?: string[];
+  imageUrl?: string;
+}
+
+export interface StockAdjustmentParams {
+  productId: string;
+  type: 'receive' | 'usage' | 'adjustment' | 'transfer' | 'damage' | 'return' | 'expired';
+  quantity: number;
+  reason?: string;
+  notes?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  unitCostInPaisa?: number;
+}
+
+export interface CreatePurchaseOrderParams {
+  vendorId: string;
+  expectedDeliveryDate?: string;
+  notes?: string;
+  internalNotes?: string;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    unitCostInPaisa: number;
+  }>;
+}
+
+export interface ReceiveItemsParams {
+  items: Array<{
+    itemId: string;
+    receivedQuantity: number;
+    batchNumber?: string;
+    expiryDate?: string;
+  }>;
+  notes?: string;
+}
+
+export interface StocktakeParams {
+  items: Array<{
+    productId: string;
+    countedQuantity: number;
+    notes?: string;
+  }>;
+  notes?: string;
+}
+
+// ===== INVENTORY MANAGEMENT API =====
+
+export const inventoryManagementApi = {
+  // Get inventory stats
+  async getInventoryStats(): Promise<ApiResponse<{ stats: InventoryStats }>> {
+    return apiRequest('/api/mobile/business/inventory/stats');
+  },
+
+  // Get products list
+  async getProducts(params?: {
+    search?: string;
+    categoryId?: string;
+    vendorId?: string;
+    stockStatus?: 'out' | 'low' | 'good' | 'overstock';
+    isActive?: number;
+    isRetail?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    limit?: number;
+    offset?: number;
+  }): Promise<ApiResponse<{ products: InventoryProduct[] }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.set('search', params.search);
+    if (params?.categoryId) queryParams.set('categoryId', params.categoryId);
+    if (params?.vendorId) queryParams.set('vendorId', params.vendorId);
+    if (params?.stockStatus) queryParams.set('stockStatus', params.stockStatus);
+    if (params?.isActive !== undefined) queryParams.set('isActive', String(params.isActive));
+    if (params?.isRetail) queryParams.set('isRetail', params.isRetail);
+    if (params?.sortBy) queryParams.set('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.set('sortOrder', params.sortOrder);
+    if (params?.limit) queryParams.set('limit', String(params.limit));
+    if (params?.offset) queryParams.set('offset', String(params.offset));
+    
+    const query = queryParams.toString();
+    return apiRequest(`/api/mobile/business/inventory/products${query ? `?${query}` : ''}`);
+  },
+
+  // Get single product
+  async getProduct(productId: string): Promise<ApiResponse<{ product: InventoryProduct; movements: StockMovement[] }>> {
+    return apiRequest(`/api/mobile/business/inventory/products/${productId}`);
+  },
+
+  // Create product
+  async createProduct(params: CreateProductParams): Promise<ApiResponse<{ product: InventoryProduct }>> {
+    return apiRequest('/api/mobile/business/inventory/products', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Update product
+  async updateProduct(productId: string, params: Partial<CreateProductParams>): Promise<ApiResponse<{ product: InventoryProduct }>> {
+    return apiRequest(`/api/mobile/business/inventory/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Delete product
+  async deleteProduct(productId: string): Promise<ApiResponse<{ message: string }>> {
+    return apiRequest(`/api/mobile/business/inventory/products/${productId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Get categories
+  async getCategories(): Promise<ApiResponse<{ categories: ProductCategory[] }>> {
+    return apiRequest('/api/mobile/business/inventory/categories');
+  },
+
+  // Create category
+  async createCategory(params: { name: string; description?: string; parentCategoryId?: string }): Promise<ApiResponse<{ category: ProductCategory }>> {
+    return apiRequest('/api/mobile/business/inventory/categories', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Update category
+  async updateCategory(categoryId: string, params: { name?: string; description?: string; isActive?: number }): Promise<ApiResponse<{ category: ProductCategory }>> {
+    return apiRequest(`/api/mobile/business/inventory/categories/${categoryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Delete category
+  async deleteCategory(categoryId: string): Promise<ApiResponse<{ message: string }>> {
+    return apiRequest(`/api/mobile/business/inventory/categories/${categoryId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Get vendors
+  async getVendors(params?: { search?: string; status?: string }): Promise<ApiResponse<{ vendors: Vendor[] }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.set('search', params.search);
+    if (params?.status) queryParams.set('status', params.status);
+    
+    const query = queryParams.toString();
+    return apiRequest(`/api/mobile/business/inventory/vendors${query ? `?${query}` : ''}`);
+  },
+
+  // Get single vendor
+  async getVendor(vendorId: string): Promise<ApiResponse<{ vendor: Vendor; products: InventoryProduct[]; recentOrders: PurchaseOrder[] }>> {
+    return apiRequest(`/api/mobile/business/inventory/vendors/${vendorId}`);
+  },
+
+  // Create vendor
+  async createVendor(params: Omit<Vendor, 'id' | 'salonId' | 'createdAt' | 'updatedAt' | 'productCount' | 'orderCount' | 'totalOrdered' | 'totalOrderedFormatted'>): Promise<ApiResponse<{ vendor: Vendor }>> {
+    return apiRequest('/api/mobile/business/inventory/vendors', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Update vendor
+  async updateVendor(vendorId: string, params: Partial<Vendor>): Promise<ApiResponse<{ vendor: Vendor }>> {
+    return apiRequest(`/api/mobile/business/inventory/vendors/${vendorId}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Adjust stock
+  async adjustStock(params: StockAdjustmentParams): Promise<ApiResponse<{ movement: StockMovement; previousStock: number; newStock: number }>> {
+    return apiRequest('/api/mobile/business/inventory/stock-adjustment', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Get stock movements
+  async getStockMovements(params?: {
+    productId?: string;
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  }): Promise<ApiResponse<{ movements: StockMovement[] }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.productId) queryParams.set('productId', params.productId);
+    if (params?.type) queryParams.set('type', params.type);
+    if (params?.startDate) queryParams.set('startDate', params.startDate);
+    if (params?.endDate) queryParams.set('endDate', params.endDate);
+    if (params?.limit) queryParams.set('limit', String(params.limit));
+    
+    const query = queryParams.toString();
+    return apiRequest(`/api/mobile/business/inventory/stock-movements${query ? `?${query}` : ''}`);
+  },
+
+  // Get purchase orders
+  async getPurchaseOrders(params?: { status?: string; vendorId?: string; limit?: number }): Promise<ApiResponse<{ orders: PurchaseOrder[] }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.set('status', params.status);
+    if (params?.vendorId) queryParams.set('vendorId', params.vendorId);
+    if (params?.limit) queryParams.set('limit', String(params.limit));
+    
+    const query = queryParams.toString();
+    return apiRequest(`/api/mobile/business/inventory/purchase-orders${query ? `?${query}` : ''}`);
+  },
+
+  // Get single purchase order
+  async getPurchaseOrder(orderId: string): Promise<ApiResponse<{ order: PurchaseOrder; items: PurchaseOrderItem[] }>> {
+    return apiRequest(`/api/mobile/business/inventory/purchase-orders/${orderId}`);
+  },
+
+  // Create purchase order
+  async createPurchaseOrder(params: CreatePurchaseOrderParams): Promise<ApiResponse<{ order: PurchaseOrder }>> {
+    return apiRequest('/api/mobile/business/inventory/purchase-orders', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Update purchase order status
+  async updatePurchaseOrderStatus(orderId: string, status: PurchaseOrder['status']): Promise<ApiResponse<{ order: PurchaseOrder }>> {
+    return apiRequest(`/api/mobile/business/inventory/purchase-orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  // Receive items from purchase order
+  async receiveItems(orderId: string, params: ReceiveItemsParams): Promise<ApiResponse<{ message: string }>> {
+    return apiRequest(`/api/mobile/business/inventory/purchase-orders/${orderId}/receive`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Submit stocktake
+  async submitStocktake(params: StocktakeParams): Promise<ApiResponse<{ message: string; adjustments: any[] }>> {
+    return apiRequest('/api/mobile/business/inventory/stocktake', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  // Get reorder suggestions
+  async getReorderSuggestions(): Promise<ApiResponse<{ suggestions: ReorderSuggestion[] }>> {
+    return apiRequest('/api/mobile/business/inventory/reorder-suggestions');
+  },
+
+  // Get inventory analytics (top selling, stock trends, recent changes)
+  async getInventoryAnalytics(period: 'week' | 'month' = 'week'): Promise<ApiResponse<InventoryAnalytics>> {
+    return apiRequest(`/api/mobile/business/inventory/analytics?period=${period}`);
+  },
+};
+
+// Inventory Analytics Types
+export interface InventoryAnalytics {
+  topSellingProducts: TopSellingProduct[];
+  stockTrends: StockTrend[];
+  recentChanges: StockChange[];
+  trendSummary: TrendSummary;
+}
+
+export interface TopSellingProduct {
+  id: string;
+  name: string;
+  unitsSold: number;
+  revenue: number;
+  category: string;
+  imageUrl?: string;
+}
+
+export interface StockTrend {
+  day: string;
+  inbound: number;
+  outbound: number;
+}
+
+export interface StockChange {
+  id: string;
+  type: 'added' | 'used' | 'adjusted' | 'delivery';
+  title: string;
+  productName: string;
+  quantity: number;
+  by: string;
+  timestamp: string;
+}
+
+export interface TrendSummary {
+  stockIn: number;
+  stockOut: number;
+  turnoverRate: number;
+}
+
+// Merge inventory API into businessApi
+Object.assign(businessApi, inventoryManagementApi);
+
+// ============================================
+// SETTINGS MANAGEMENT TYPES AND API
+// ============================================
+
+export interface SalonSettings {
+  id: string;
+  name: string;
+  description: string | null;
+  shopNumber: string | null;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+  email: string;
+  website: string | null;
+  category: string;
+  priceRange: string;
+  venueType: string | null;
+  instantBooking: number;
+  offerDeals: number;
+  acceptGroup: number;
+  imageUrl: string | null;
+  imageUrls: string[] | null;
+  openTime: string | null;
+  closeTime: string | null;
+  businessHours: Record<string, { open: boolean; start: string; end: string; breakStart?: string; breakEnd?: string }> | null;
+  membershipEnabled: number | null;
+  latitude: string | null;
+  longitude: string | null;
+}
+
+export interface UserProfile {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+  profileImage: string | null;
+  role: string | null;
+}
+
+export interface NotificationPreferences {
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  bookingReminders: boolean;
+  paymentAlerts: boolean;
+  marketingUpdates: boolean;
+}
+
+export interface AppPreferences {
+  language: string;
+  theme: string;
+  dateFormat: string;
+  timeFormat: string;
+  soundEffects: boolean;
+  hapticFeedback: boolean;
+}
+
+export interface SettingsResponse {
+  profile: UserProfile;
+  salon: SalonSettings;
+  notificationPreferences: NotificationPreferences;
+  appPreferences: AppPreferences;
+  staffRole: string;
+  isOwner: boolean;
+}
+
+export interface BusinessHours {
+  [day: string]: {
+    open: boolean;
+    start: string;
+    end: string;
+    breakStart?: string;
+    breakEnd?: string;
+  };
+}
+
+// Payroll Types
+export interface PayrollStats {
+  totalStaff: number;
+  activePayrollCycle: { id: string; status: string } | null;
+  pendingLeaveRequests: number;
+  pendingOnboarding: number;
+  pendingExits: number;
+  totalPayablePaisa: number;
+  lastPayrollDate: string | null;
+}
+
+export interface StaffWithSalary {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  roles: string[];
+  employmentProfile: {
+    id: string;
+    employmentType: string;
+    compensationModel: string;
+    status: string;
+    joiningDate: string | null;
+    onboardingStatus: string;
+  } | null;
+  salaryComponent: {
+    id: string;
+    baseSalaryPaisa: number;
+    hourlyRatePaisa: number | null;
+    hraAllowancePaisa: number | null;
+    travelAllowancePaisa: number | null;
+    mealAllowancePaisa: number | null;
+    otherAllowancesPaisa: number | null;
+    pfDeductionPaisa: number | null;
+    esiDeductionPaisa: number | null;
+    professionalTaxPaisa: number | null;
+    tdsDeductionPaisa: number | null;
+    effectiveFrom: string | null;
+  } | null;
+}
+
+export interface PayrollCycle {
+  id: string;
+  periodYear: number;
+  periodMonth: number;
+  periodStartDate: string;
+  periodEndDate: string;
+  status: string;
+  totalStaffCount: number;
+  totalGrossSalaryPaisa: number;
+  totalCommissionsPaisa: number;
+  totalDeductionsPaisa: number;
+  totalNetPayablePaisa: number;
+  processedAt: string | null;
+  approvedAt: string | null;
+}
+
+export interface PayrollEntry {
+  id: string;
+  staffId: string;
+  staffName: string;
+  baseSalaryPaisa: number;
+  hraAllowancePaisa: number;
+  travelAllowancePaisa: number;
+  mealAllowancePaisa: number;
+  otherAllowancesPaisa: number;
+  commissionsPaisa: number;
+  bonusPaisa: number;
+  overtimePaisa: number;
+  tipsPaisa: number;
+  grossEarningsPaisa: number;
+  pfDeductionPaisa: number;
+  esiDeductionPaisa: number;
+  professionalTaxPaisa: number;
+  tdsDeductionPaisa: number;
+  advanceDeductionPaisa: number;
+  otherDeductionsPaisa: number;
+  totalDeductionsPaisa: number;
+  netPayablePaisa: number;
+  status: string;
+  paidAt: string | null;
+  workingDays: number;
+  presentDays: number;
+  leaveDays: number;
+  absentDays: number;
+}
+
+export interface CommissionStructure {
+  id: string;
+  name: string;
+  type: 'flat' | 'percentage' | 'tiered';
+  serviceCategory: string | null;
+  baseFlatAmount: number | null;
+  basePercentage: number | null;
+  tiers: { min: number; max: number; rate: number }[];
+  isActive: boolean;
+}
+
+export interface CreatePayrollCycleParams {
+  periodYear: number;
+  periodMonth: number;
+  staffIds: string[];
+}
+
+export interface ProcessPayrollParams {
+  cycleId: string;
+  adjustments?: {
+    staffId: string;
+    bonusPaisa?: number;
+    deductionPaisa?: number;
+    notes?: string;
+  }[];
+}
+
+export const payrollApi = {
+  async getStats(): Promise<ApiResponse<PayrollStats>> {
+    return apiRequest('/api/mobile/business/payroll/stats');
+  },
+
+  async getStaffWithSalary(): Promise<ApiResponse<StaffWithSalary[]>> {
+    return apiRequest('/api/mobile/business/payroll/staff');
+  },
+
+  async getPayrollCycles(year?: number): Promise<ApiResponse<PayrollCycle[]>> {
+    const params = year ? `?year=${year}` : '';
+    return apiRequest(`/api/mobile/business/payroll/cycles${params}`);
+  },
+
+  async getPayrollCycleDetails(cycleId: string): Promise<ApiResponse<{ cycle: PayrollCycle; entries: PayrollEntry[] }>> {
+    return apiRequest(`/api/mobile/business/payroll/cycles/${cycleId}`);
+  },
+
+  async getStaffPayrollDetails(staffId: string, year?: number, month?: number): Promise<ApiResponse<{
+    staff: StaffWithSalary;
+    currentEntry: PayrollEntry | null;
+    history: PayrollEntry[];
+    attendance: { workingDays: number; presentDays: number; leaveDays: number; absentDays: number };
+  }>> {
+    let params = '';
+    if (year) params += `?year=${year}`;
+    if (month) params += params ? `&month=${month}` : `?month=${month}`;
+    return apiRequest(`/api/mobile/business/payroll/staff/${staffId}${params}`);
+  },
+
+  async createPayrollCycle(params: CreatePayrollCycleParams): Promise<ApiResponse<{ id: string; message: string }>> {
+    return apiRequest('/api/mobile/business/payroll/cycles', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async processPayroll(params: ProcessPayrollParams): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/payroll/cycles/${params.cycleId}/process`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async markEntryPaid(entryId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/mobile/business/payroll/entries/${entryId}/pay`, {
+      method: 'POST',
+    });
+  },
+
+  async getCommissionStructures(): Promise<ApiResponse<CommissionStructure[]>> {
+    return apiRequest('/api/mobile/business/payroll/commission-structures');
+  },
+
+  async createCommissionStructure(params: Omit<CommissionStructure, 'id'>): Promise<ApiResponse<{ id: string }>> {
+    return apiRequest('/api/mobile/business/payroll/commission-structures', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateCommissionStructure(id: string, params: Partial<CommissionStructure>): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/mobile/business/payroll/commission-structures/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async getStaffCommissions(staffId: string, month?: number, year?: number): Promise<ApiResponse<{
+    total: number;
+    breakdown: { serviceId: string; serviceName: string; count: number; amount: number }[];
+  }>> {
+    let params = '';
+    if (year) params += `?year=${year}`;
+    if (month) params += params ? `&month=${month}` : `?month=${month}`;
+    return apiRequest(`/api/mobile/business/payroll/staff/${staffId}/commissions${params}`);
+  },
+
+  async getStaffTips(staffId: string, month?: number, year?: number): Promise<ApiResponse<{
+    total: number;
+    transactions: { id: string; amount: number; date: string; source: string }[];
+  }>> {
+    let params = '';
+    if (year) params += `?year=${year}`;
+    if (month) params += params ? `&month=${month}` : `?month=${month}`;
+    return apiRequest(`/api/mobile/business/payroll/staff/${staffId}/tips${params}`);
+  },
+
+  async exportPayrollReport(cycleId: string, format: 'pdf' | 'excel'): Promise<ApiResponse<{ downloadUrl: string }>> {
+    return apiRequest(`/api/mobile/business/payroll/cycles/${cycleId}/export?format=${format}`);
+  },
+};
+
+export const settingsApi = {
+  async getSettings(): Promise<ApiResponse<SettingsResponse>> {
+    return apiRequest('/api/mobile/business/settings');
+  },
+
+  async getProfile(): Promise<ApiResponse<UserProfile>> {
+    return apiRequest('/api/mobile/business/settings/profile');
+  },
+
+  async updateProfile(params: Partial<UserProfile>): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest('/api/mobile/business/settings/profile', {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async getSalon(): Promise<ApiResponse<SalonSettings>> {
+    return apiRequest('/api/mobile/business/settings/salon');
+  },
+
+  async updateSalon(params: Partial<SalonSettings>): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest('/api/mobile/business/settings/salon', {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateBusinessHours(params: { businessHours: BusinessHours; breakTime?: { start: string; end: string } }): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest('/api/mobile/business/settings/business-hours', {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateBookingSettings(params: { instantBooking?: boolean; offerDeals?: boolean; acceptGroup?: boolean }): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest('/api/mobile/business/settings/booking', {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async changePassword(params: { currentPassword: string; newPassword: string }): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest('/api/mobile/business/settings/password', {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+};
+
+Object.assign(businessApi, settingsApi);
+
 export default businessApi;
