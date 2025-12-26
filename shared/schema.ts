@@ -10861,4 +10861,79 @@ export const membershipPaymentsRelations = relations(membershipPayments, ({ one 
     fields: [membershipPayments.salonId],
     references: [salons.id],
   }),
+}));
+
+// ===== MARKETING AUTOMATIONS =====
+
+// Marketing Automations - Automated marketing workflows for salons
+export const marketingAutomations = pgTable("marketing_automations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salonId: varchar("salon_id").notNull().references(() => salons.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 50 }).notNull(), // rebook_reminder, win_back, birthday_offer, review_request, fill_slow_days
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  isActive: integer("is_active").notNull().default(0),
+  trigger: jsonb("trigger").default('{}'), // { type: 'days_after_visit', value: 14, unit: 'days' }
+  messageTemplate: text("message_template"),
+  channel: varchar("channel", { length: 20 }).default('whatsapp'), // whatsapp, sms, both
+  linkedOfferId: varchar("linked_offer_id").references(() => platformOffers.id, { onDelete: "set null" }),
+  // Performance tracking
+  sentCount: integer("sent_count").notNull().default(0),
+  deliveredCount: integer("delivered_count").notNull().default(0),
+  convertedCount: integer("converted_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("marketing_automations_salon_id_idx").on(table.salonId),
+  index("marketing_automations_type_idx").on(table.type),
+  index("marketing_automations_is_active_idx").on(table.isActive),
+  unique("marketing_automations_salon_type_unique").on(table.salonId, table.type),
+]);
+
+export const insertMarketingAutomationSchema = createInsertSchema(marketingAutomations).omit({
+  id: true,
+  sentCount: true,
+  deliveredCount: true,
+  convertedCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type MarketingAutomation = typeof marketingAutomations.$inferSelect;
+export type InsertMarketingAutomation = z.infer<typeof insertMarketingAutomationSchema>;
+
+// Message Quota - Track monthly message usage per salon
+export const messageQuota = pgTable("message_quota", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salonId: varchar("salon_id").notNull().references(() => salons.id, { onDelete: "cascade" }),
+  month: integer("month").notNull(), // 1-12
+  year: integer("year").notNull(),
+  used: integer("used").notNull().default(0),
+  limit: integer("limit").notNull().default(2500), // Default 2500 messages/month
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("message_quota_salon_id_idx").on(table.salonId),
+  unique("message_quota_salon_month_year_unique").on(table.salonId, table.month, table.year),
+]);
+
+export type MessageQuota = typeof messageQuota.$inferSelect;
+
+// Marketing Automation Relations
+export const marketingAutomationsRelations = relations(marketingAutomations, ({ one }) => ({
+  salon: one(salons, {
+    fields: [marketingAutomations.salonId],
+    references: [salons.id],
+  }),
+  linkedOffer: one(platformOffers, {
+    fields: [marketingAutomations.linkedOfferId],
+    references: [platformOffers.id],
+  }),
+}));
+
+export const messageQuotaRelations = relations(messageQuota, ({ one }) => ({
+  salon: one(salons, {
+    fields: [messageQuota.salonId],
+    references: [salons.id],
+  }),
 }))

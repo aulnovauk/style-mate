@@ -837,8 +837,7 @@ router.post('/salons/:salonId/payroll-cycles', requireSalonAccess(), requireBusi
         totalGrossSalaryPaisa: 0,
         totalCommissionsPaisa: 0,
         totalDeductionsPaisa: 0,
-        totalNetPayablePaisa: 0,
-        createdBy: userId || null
+        totalNetPayablePaisa: 0
       })
       .returning({ id: staffPayrollCycles.id });
 
@@ -1053,6 +1052,307 @@ router.post('/salons/:salonId/staff/:staffId/exit', requireSalonAccess(), requir
   } catch (error: any) {
     console.error('Error creating exit record:', error);
     res.status(500).json({ error: 'Failed to create exit record', details: error.message });
+  }
+});
+
+router.put('/salons/:salonId/payroll-cycles/:cycleId/approve', requireSalonAccess(), requireBusinessOwner(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { salonId, cycleId } = req.params;
+    const userId = req.user?.id;
+
+    const cycleResult = await db
+      .select({
+        id: staffPayrollCycles.id,
+        status: staffPayrollCycles.status
+      })
+      .from(staffPayrollCycles)
+      .where(and(
+        eq(staffPayrollCycles.id, cycleId),
+        eq(staffPayrollCycles.salonId, salonId)
+      ))
+      .limit(1);
+
+    if (cycleResult.length === 0) {
+      return res.status(404).json({ error: 'Payroll cycle not found' });
+    }
+
+    const cycle = cycleResult[0];
+    if (cycle.status !== 'processed') {
+      return res.status(400).json({ error: 'Only processed payroll cycles can be approved' });
+    }
+
+    await db
+      .update(staffPayrollCycles)
+      .set({
+        status: 'approved',
+        approvedAt: new Date(),
+        approvedBy: userId || null,
+        updatedAt: new Date()
+      })
+      .where(eq(staffPayrollCycles.id, cycleId));
+
+    res.json({ message: 'Payroll cycle approved successfully' });
+  } catch (error: any) {
+    console.error('Error approving payroll cycle:', error);
+    res.status(500).json({ error: 'Failed to approve payroll cycle', details: error.message });
+  }
+});
+
+router.put('/salons/:salonId/payroll-cycles/:cycleId/pay', requireSalonAccess(), requireBusinessOwner(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { salonId, cycleId } = req.params;
+    const { paymentMethod, paymentReference } = req.body;
+    const userId = req.user?.id;
+
+    const cycleResult = await db
+      .select({
+        id: staffPayrollCycles.id,
+        status: staffPayrollCycles.status
+      })
+      .from(staffPayrollCycles)
+      .where(and(
+        eq(staffPayrollCycles.id, cycleId),
+        eq(staffPayrollCycles.salonId, salonId)
+      ))
+      .limit(1);
+
+    if (cycleResult.length === 0) {
+      return res.status(404).json({ error: 'Payroll cycle not found' });
+    }
+
+    const cycle = cycleResult[0];
+    if (cycle.status !== 'approved') {
+      return res.status(400).json({ error: 'Only approved payroll cycles can be marked as paid' });
+    }
+
+    await db
+      .update(staffPayrollCycles)
+      .set({
+        status: 'paid',
+        updatedAt: new Date()
+      })
+      .where(eq(staffPayrollCycles.id, cycleId));
+
+    await db
+      .update(staffPayrollEntries)
+      .set({
+        paymentStatus: 'paid',
+        paidAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(staffPayrollEntries.payrollCycleId, cycleId));
+
+    res.json({ message: 'Payroll cycle marked as paid successfully' });
+  } catch (error: any) {
+    console.error('Error marking payroll as paid:', error);
+    res.status(500).json({ error: 'Failed to mark payroll as paid', details: error.message });
+  }
+});
+
+router.put('/salons/:salonId/payroll-entries/:entryId/pay', requireSalonAccess(), requireBusinessOwner(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { salonId, entryId } = req.params;
+    const { paymentMethod, paymentReference } = req.body;
+
+    const entryResult = await db
+      .select({
+        id: staffPayrollEntries.id,
+        paymentStatus: staffPayrollEntries.paymentStatus
+      })
+      .from(staffPayrollEntries)
+      .where(and(
+        eq(staffPayrollEntries.id, entryId),
+        eq(staffPayrollEntries.salonId, salonId)
+      ))
+      .limit(1);
+
+    if (entryResult.length === 0) {
+      return res.status(404).json({ error: 'Payroll entry not found' });
+    }
+
+    const entry = entryResult[0];
+    if (entry.paymentStatus === 'paid') {
+      return res.status(400).json({ error: 'This payout has already been paid' });
+    }
+
+    await db
+      .update(staffPayrollEntries)
+      .set({
+        paymentStatus: 'paid',
+        paidAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(staffPayrollEntries.id, entryId));
+
+    res.json({ message: 'Staff payout marked as paid successfully' });
+  } catch (error: any) {
+    console.error('Error processing individual payout:', error);
+    res.status(500).json({ error: 'Failed to process payout', details: error.message });
+  }
+});
+
+router.get('/salons/:salonId/payroll-entries/:entryId/payslip', requireSalonAccess(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { salonId, entryId } = req.params;
+
+    const entryResult = await db
+      .select({
+        id: staffPayrollEntries.id,
+        staffId: staffPayrollEntries.staffId,
+        baseSalaryPaisa: staffPayrollEntries.baseSalaryPaisa,
+        allowancesPaisa: staffPayrollEntries.allowancesPaisa,
+        commissionEarningsPaisa: staffPayrollEntries.commissionEarningsPaisa,
+        tipsReceivedPaisa: staffPayrollEntries.tipsReceivedPaisa,
+        bonusesPaisa: staffPayrollEntries.bonusesPaisa,
+        grossEarningsPaisa: staffPayrollEntries.grossEarningsPaisa,
+        totalDeductionsPaisa: staffPayrollEntries.totalDeductionsPaisa,
+        netPayablePaisa: staffPayrollEntries.netPayablePaisa,
+        paymentStatus: staffPayrollEntries.paymentStatus,
+        paidAt: staffPayrollEntries.paidAt
+      })
+      .from(staffPayrollEntries)
+      .where(and(
+        eq(staffPayrollEntries.id, entryId),
+        eq(staffPayrollEntries.salonId, salonId)
+      ))
+      .limit(1);
+
+    if (entryResult.length === 0) {
+      return res.status(404).json({ error: 'Payroll entry not found' });
+    }
+
+    const entry = entryResult[0];
+
+    const staffResult = await db
+      .select({
+        name: staff.name,
+        email: staff.email,
+        phone: staff.phone
+      })
+      .from(staff)
+      .where(eq(staff.id, entry.staffId))
+      .limit(1);
+
+    const salonResult = await db
+      .select({
+        name: salons.name,
+        address: salons.address,
+        city: salons.city
+      })
+      .from(salons)
+      .where(eq(salons.id, salonId))
+      .limit(1);
+
+    const cycleResult = await db
+      .select({
+        periodMonth: staffPayrollCycles.periodMonth,
+        periodYear: staffPayrollCycles.periodYear,
+        periodStartDate: staffPayrollCycles.periodStartDate,
+        periodEndDate: staffPayrollCycles.periodEndDate
+      })
+      .from(staffPayrollCycles)
+      .innerJoin(staffPayrollEntries, eq(staffPayrollCycles.id, staffPayrollEntries.payrollCycleId))
+      .where(eq(staffPayrollEntries.id, entryId))
+      .limit(1);
+
+    const payslipData = {
+      payslipId: `PS-${entryId.substring(0, 8).toUpperCase()}`,
+      generatedAt: new Date().toISOString(),
+      salon: salonResult[0] || { name: 'Salon', address: '', city: '' },
+      employee: staffResult[0] || { name: 'Employee', email: '', phone: '' },
+      period: cycleResult[0] || { periodMonth: new Date().getMonth() + 1, periodYear: new Date().getFullYear() },
+      earnings: {
+        baseSalary: (entry.baseSalaryPaisa || 0) / 100,
+        allowances: (entry.allowancesPaisa || 0) / 100,
+        commission: (entry.commissionEarningsPaisa || 0) / 100,
+        tips: (entry.tipsReceivedPaisa || 0) / 100,
+        bonus: (entry.bonusesPaisa || 0) / 100,
+        grossEarnings: (entry.grossEarningsPaisa || 0) / 100
+      },
+      deductions: {
+        totalDeductions: (entry.totalDeductionsPaisa || 0) / 100
+      },
+      netPayable: (entry.netPayablePaisa || 0) / 100,
+      paymentStatus: entry.paymentStatus,
+      paidAt: entry.paidAt
+    };
+
+    res.json(payslipData);
+  } catch (error: any) {
+    console.error('Error generating payslip:', error);
+    res.status(500).json({ error: 'Failed to generate payslip', details: error.message });
+  }
+});
+
+router.get('/salons/:salonId/payroll/history', requireSalonAccess(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { salonId } = req.params;
+    const { limit = '12', offset = '0' } = req.query;
+
+    const payrollHistory = await db
+      .select({
+        id: staffPayrollCycles.id,
+        periodYear: staffPayrollCycles.periodYear,
+        periodMonth: staffPayrollCycles.periodMonth,
+        periodStartDate: staffPayrollCycles.periodStartDate,
+        periodEndDate: staffPayrollCycles.periodEndDate,
+        status: staffPayrollCycles.status,
+        totalStaffCount: staffPayrollCycles.totalStaffCount,
+        totalGrossSalaryPaisa: staffPayrollCycles.totalGrossSalaryPaisa,
+        totalCommissionsPaisa: staffPayrollCycles.totalCommissionsPaisa,
+        totalDeductionsPaisa: staffPayrollCycles.totalDeductionsPaisa,
+        totalNetPayablePaisa: staffPayrollCycles.totalNetPayablePaisa,
+        processedAt: staffPayrollCycles.processedAt,
+        approvedAt: staffPayrollCycles.approvedAt
+      })
+      .from(staffPayrollCycles)
+      .where(eq(staffPayrollCycles.salonId, salonId))
+      .orderBy(desc(staffPayrollCycles.periodYear), desc(staffPayrollCycles.periodMonth))
+      .limit(parseInt(limit as string))
+      .offset(parseInt(offset as string));
+
+    res.json(payrollHistory);
+  } catch (error: any) {
+    console.error('Error fetching payroll history:', error);
+    res.status(500).json({ error: 'Failed to fetch payroll history', details: error.message });
+  }
+});
+
+router.get('/salons/:salonId/payroll/staff-breakdown', requireSalonAccess(), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { salonId } = req.params;
+    const { cycleId } = req.query;
+
+    let conditions = [eq(staffPayrollEntries.salonId, salonId)];
+    if (cycleId) {
+      conditions.push(eq(staffPayrollEntries.payrollCycleId, cycleId as string));
+    }
+
+    const staffBreakdown = await db
+      .select({
+        entryId: staffPayrollEntries.id,
+        staffId: staffPayrollEntries.staffId,
+        baseSalaryPaisa: staffPayrollEntries.baseSalaryPaisa,
+        allowancesPaisa: staffPayrollEntries.allowancesPaisa,
+        commissionEarningsPaisa: staffPayrollEntries.commissionEarningsPaisa,
+        tipsReceivedPaisa: staffPayrollEntries.tipsReceivedPaisa,
+        bonusesPaisa: staffPayrollEntries.bonusesPaisa,
+        grossEarningsPaisa: staffPayrollEntries.grossEarningsPaisa,
+        totalDeductionsPaisa: staffPayrollEntries.totalDeductionsPaisa,
+        netPayablePaisa: staffPayrollEntries.netPayablePaisa,
+        paymentStatus: staffPayrollEntries.paymentStatus,
+        staffName: staff.name,
+        staffEmail: staff.email
+      })
+      .from(staffPayrollEntries)
+      .leftJoin(staff, eq(staffPayrollEntries.staffId, staff.id))
+      .where(and(...conditions))
+      .orderBy(staff.name);
+
+    res.json(staffBreakdown);
+  } catch (error: any) {
+    console.error('Error fetching staff breakdown:', error);
+    res.status(500).json({ error: 'Failed to fetch staff breakdown', details: error.message });
   }
 });
 

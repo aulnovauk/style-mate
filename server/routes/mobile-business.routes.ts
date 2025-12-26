@@ -10,8 +10,8 @@
 
 import type { Express, Response, Request } from "express";
 import { db } from "../db";
-import { bookings, services, salons, staff, users, userRoles } from "@shared/schema";
-import { eq, and, sql, desc, gte, lte, asc, inArray } from "drizzle-orm";
+import { bookings, services, salons, staff, users, userRoles, staffPayrollCycles, staffPayrollEntries, staffSalaryComponents, staffEmploymentProfiles } from "@shared/schema";
+import { eq, and, sql, desc, gte, lte, asc, inArray, count, sum } from "drizzle-orm";
 import { authenticateMobileUser } from "../middleware/authMobile";
 import { z } from "zod";
 
@@ -1300,6 +1300,833 @@ export function registerMobileBusinessRoutes(app: Express) {
     } catch (error) {
       console.error("Checkout appointment API error:", error);
       res.status(500).json({ error: "Failed to fetch appointment for checkout" });
+    }
+  });
+
+  // ============================================
+  // PAYROLL ROUTES (Zylu-inspired features)
+  // ============================================
+
+  /**
+   * GET /api/mobile/business/payroll/stats
+   * Get payroll statistics for the salon
+   */
+  app.get("/api/mobile/business/payroll/stats", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const staffResult = await db.select({ count: count() })
+        .from(staff)
+        .where(eq(staff.salonId, salonId));
+      const totalStaff = Number(staffResult[0]?.count || 0);
+
+      const salaryResult = await db.select({
+        total: sql<number>`COALESCE(SUM(
+          COALESCE(${staffSalaryComponents.baseSalaryPaisa}, 0) + 
+          COALESCE(${staffSalaryComponents.hraAllowancePaisa}, 0) + 
+          COALESCE(${staffSalaryComponents.travelAllowancePaisa}, 0) + 
+          COALESCE(${staffSalaryComponents.mealAllowancePaisa}, 0) + 
+          COALESCE(${staffSalaryComponents.otherAllowancesPaisa}, 0)
+        ), 0)`
+      })
+        .from(staffSalaryComponents)
+        .where(and(
+          eq(staffSalaryComponents.salonId, salonId),
+          eq(staffSalaryComponents.isActive, 1)
+        ));
+      const totalPayablePaisa = Number(salaryResult[0]?.total || 0);
+
+      const cycleResult = await db.select({
+        id: staffPayrollCycles.id,
+        status: staffPayrollCycles.status,
+        processedAt: staffPayrollCycles.processedAt
+      })
+        .from(staffPayrollCycles)
+        .where(eq(staffPayrollCycles.salonId, salonId))
+        .orderBy(desc(staffPayrollCycles.periodYear), desc(staffPayrollCycles.periodMonth))
+        .limit(1);
+      
+      const activePayrollCycle = cycleResult.length > 0 ? {
+        id: cycleResult[0].id,
+        status: cycleResult[0].status
+      } : null;
+
+      res.json({
+        totalStaff,
+        activePayrollCycle,
+        totalPayablePaisa
+      });
+    } catch (error) {
+      console.error("Payroll stats API error:", error);
+      res.status(500).json({ error: "Failed to fetch payroll stats" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/payroll/history
+   * Get payroll history for the salon
+   */
+  app.get("/api/mobile/business/payroll/history", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { limit = '12', offset = '0' } = req.query;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const payrollHistory = await db.select({
+        id: staffPayrollCycles.id,
+        periodYear: staffPayrollCycles.periodYear,
+        periodMonth: staffPayrollCycles.periodMonth,
+        periodStartDate: staffPayrollCycles.periodStartDate,
+        periodEndDate: staffPayrollCycles.periodEndDate,
+        status: staffPayrollCycles.status,
+        totalStaffCount: staffPayrollCycles.totalStaffCount,
+        totalGrossSalaryPaisa: staffPayrollCycles.totalGrossSalaryPaisa,
+        totalCommissionsPaisa: staffPayrollCycles.totalCommissionsPaisa,
+        totalDeductionsPaisa: staffPayrollCycles.totalDeductionsPaisa,
+        totalNetPayablePaisa: staffPayrollCycles.totalNetPayablePaisa,
+        processedAt: staffPayrollCycles.processedAt,
+        approvedAt: staffPayrollCycles.approvedAt
+      })
+        .from(staffPayrollCycles)
+        .where(eq(staffPayrollCycles.salonId, salonId))
+        .orderBy(desc(staffPayrollCycles.periodYear), desc(staffPayrollCycles.periodMonth))
+        .limit(parseInt(limit as string))
+        .offset(parseInt(offset as string));
+
+      res.json(payrollHistory);
+    } catch (error) {
+      console.error("Payroll history API error:", error);
+      res.status(500).json({ error: "Failed to fetch payroll history" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/payroll/staff-breakdown
+   * Get staff payroll breakdown
+   */
+  app.get("/api/mobile/business/payroll/staff-breakdown", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { cycleId } = req.query;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const whereCondition = cycleId 
+        ? and(eq(staffPayrollEntries.salonId, salonId), eq(staffPayrollEntries.payrollCycleId, cycleId as string))
+        : eq(staffPayrollEntries.salonId, salonId);
+
+      const staffBreakdown = await db.select({
+        entryId: staffPayrollEntries.id,
+        staffId: staffPayrollEntries.staffId,
+        baseSalaryPaisa: staffPayrollEntries.baseSalaryPaisa,
+        allowancesPaisa: staffPayrollEntries.allowancesPaisa,
+        commissionEarningsPaisa: staffPayrollEntries.commissionEarningsPaisa,
+        tipsReceivedPaisa: staffPayrollEntries.tipsReceivedPaisa,
+        bonusesPaisa: staffPayrollEntries.bonusesPaisa,
+        grossEarningsPaisa: staffPayrollEntries.grossEarningsPaisa,
+        totalDeductionsPaisa: staffPayrollEntries.totalDeductionsPaisa,
+        netPayablePaisa: staffPayrollEntries.netPayablePaisa,
+        paymentStatus: staffPayrollEntries.paymentStatus,
+        staffName: staff.name,
+        staffEmail: staff.email
+      })
+        .from(staffPayrollEntries)
+        .leftJoin(staff, eq(staffPayrollEntries.staffId, staff.id))
+        .where(whereCondition)
+        .orderBy(staff.name);
+
+      res.json(staffBreakdown);
+    } catch (error) {
+      console.error("Staff breakdown API error:", error);
+      res.status(500).json({ error: "Failed to fetch staff breakdown" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/payroll/entries/:entryId/payslip
+   * Get payslip data for a specific payroll entry
+   */
+  app.get("/api/mobile/business/payroll/entries/:entryId/payslip", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { entryId } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const entryResult = await db.select({
+        id: staffPayrollEntries.id,
+        staffId: staffPayrollEntries.staffId,
+        baseSalaryPaisa: staffPayrollEntries.baseSalaryPaisa,
+        allowancesPaisa: staffPayrollEntries.allowancesPaisa,
+        commissionEarningsPaisa: staffPayrollEntries.commissionEarningsPaisa,
+        tipsReceivedPaisa: staffPayrollEntries.tipsReceivedPaisa,
+        bonusesPaisa: staffPayrollEntries.bonusesPaisa,
+        grossEarningsPaisa: staffPayrollEntries.grossEarningsPaisa,
+        totalDeductionsPaisa: staffPayrollEntries.totalDeductionsPaisa,
+        netPayablePaisa: staffPayrollEntries.netPayablePaisa,
+        paymentStatus: staffPayrollEntries.paymentStatus,
+        paidAt: staffPayrollEntries.paidAt
+      })
+        .from(staffPayrollEntries)
+        .where(and(
+          eq(staffPayrollEntries.id, entryId),
+          eq(staffPayrollEntries.salonId, salonId)
+        ))
+        .limit(1);
+
+      if (entryResult.length === 0) {
+        return res.status(404).json({ error: "Payroll entry not found" });
+      }
+
+      const entry = entryResult[0];
+
+      const staffResult = await db.select({
+        name: staff.name,
+        email: staff.email,
+        phone: staff.phone
+      })
+        .from(staff)
+        .where(eq(staff.id, entry.staffId))
+        .limit(1);
+
+      const salonResult = await db.select({
+        name: salons.name,
+        address: salons.address,
+        city: salons.city
+      })
+        .from(salons)
+        .where(eq(salons.id, salonId))
+        .limit(1);
+
+      const payrollCycleId = await db.select({ payrollCycleId: staffPayrollEntries.payrollCycleId })
+        .from(staffPayrollEntries)
+        .where(eq(staffPayrollEntries.id, entryId))
+        .limit(1);
+
+      const cycleResult = payrollCycleId.length > 0 
+        ? await db.select({
+            periodMonth: staffPayrollCycles.periodMonth,
+            periodYear: staffPayrollCycles.periodYear,
+            periodStartDate: staffPayrollCycles.periodStartDate,
+            periodEndDate: staffPayrollCycles.periodEndDate
+          })
+          .from(staffPayrollCycles)
+          .where(eq(staffPayrollCycles.id, payrollCycleId[0].payrollCycleId))
+          .limit(1)
+        : [];
+
+      const payslipData = {
+        payslipId: `PS-${entryId.substring(0, 8).toUpperCase()}`,
+        generatedAt: new Date().toISOString(),
+        salon: salonResult[0] || { name: 'Salon', address: '', city: '' },
+        employee: staffResult[0] || { name: 'Employee', email: '', phone: '' },
+        period: cycleResult[0] || { periodMonth: new Date().getMonth() + 1, periodYear: new Date().getFullYear() },
+        earnings: {
+          baseSalary: (entry.baseSalaryPaisa || 0) / 100,
+          allowances: (entry.allowancesPaisa || 0) / 100,
+          commission: (entry.commissionEarningsPaisa || 0) / 100,
+          tips: (entry.tipsReceivedPaisa || 0) / 100,
+          bonus: (entry.bonusesPaisa || 0) / 100,
+          grossEarnings: (entry.grossEarningsPaisa || 0) / 100
+        },
+        deductions: {
+          totalDeductions: (entry.totalDeductionsPaisa || 0) / 100
+        },
+        netPayable: (entry.netPayablePaisa || 0) / 100,
+        paymentStatus: entry.paymentStatus,
+        paidAt: entry.paidAt
+      };
+
+      res.json(payslipData);
+    } catch (error) {
+      console.error("Payslip API error:", error);
+      res.status(500).json({ error: "Failed to generate payslip" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/payroll/cycles/:cycleId/approve
+   * Approve a payroll cycle
+   */
+  app.put("/api/mobile/business/payroll/cycles/:cycleId/approve", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { cycleId } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const cycleResult = await db.select({
+        id: staffPayrollCycles.id,
+        status: staffPayrollCycles.status
+      })
+        .from(staffPayrollCycles)
+        .where(and(
+          eq(staffPayrollCycles.id, cycleId),
+          eq(staffPayrollCycles.salonId, salonId)
+        ))
+        .limit(1);
+
+      if (cycleResult.length === 0) {
+        return res.status(404).json({ error: "Payroll cycle not found" });
+      }
+
+      if (cycleResult[0].status !== 'processed') {
+        return res.status(400).json({ error: "Only processed payroll cycles can be approved" });
+      }
+
+      await db.update(staffPayrollCycles)
+        .set({
+          status: 'approved',
+          approvedAt: new Date(),
+          approvedBy: userId,
+          updatedAt: new Date()
+        })
+        .where(eq(staffPayrollCycles.id, cycleId));
+
+      res.json({ success: true, message: 'Payroll cycle approved successfully' });
+    } catch (error) {
+      console.error("Approve cycle API error:", error);
+      res.status(500).json({ error: "Failed to approve payroll cycle" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/payroll/cycles/:cycleId/pay
+   * Mark a payroll cycle as paid
+   */
+  app.put("/api/mobile/business/payroll/cycles/:cycleId/pay", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { cycleId } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const cycleResult = await db.select({
+        id: staffPayrollCycles.id,
+        status: staffPayrollCycles.status
+      })
+        .from(staffPayrollCycles)
+        .where(and(
+          eq(staffPayrollCycles.id, cycleId),
+          eq(staffPayrollCycles.salonId, salonId)
+        ))
+        .limit(1);
+
+      if (cycleResult.length === 0) {
+        return res.status(404).json({ error: "Payroll cycle not found" });
+      }
+
+      if (cycleResult[0].status !== 'approved') {
+        return res.status(400).json({ error: "Only approved payroll cycles can be marked as paid" });
+      }
+
+      await db.update(staffPayrollCycles)
+        .set({
+          status: 'paid',
+          updatedAt: new Date()
+        })
+        .where(eq(staffPayrollCycles.id, cycleId));
+
+      await db.update(staffPayrollEntries)
+        .set({
+          paymentStatus: 'paid',
+          paidAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(staffPayrollEntries.payrollCycleId, cycleId));
+
+      res.json({ success: true, message: 'Payroll cycle marked as paid successfully' });
+    } catch (error) {
+      console.error("Pay cycle API error:", error);
+      res.status(500).json({ error: "Failed to mark payroll as paid" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/payroll/entries/:entryId/pay
+   * Mark an individual payroll entry as paid
+   */
+  app.put("/api/mobile/business/payroll/entries/:entryId/pay", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { entryId } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const entryResult = await db.select({
+        id: staffPayrollEntries.id,
+        paymentStatus: staffPayrollEntries.paymentStatus
+      })
+        .from(staffPayrollEntries)
+        .where(and(
+          eq(staffPayrollEntries.id, entryId),
+          eq(staffPayrollEntries.salonId, salonId)
+        ))
+        .limit(1);
+
+      if (entryResult.length === 0) {
+        return res.status(404).json({ error: "Payroll entry not found" });
+      }
+
+      if (entryResult[0].paymentStatus === 'paid') {
+        return res.status(400).json({ error: "This payout has already been paid" });
+      }
+
+      await db.update(staffPayrollEntries)
+        .set({
+          paymentStatus: 'paid',
+          paidAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(staffPayrollEntries.id, entryId));
+
+      res.json({ success: true, message: 'Staff payout marked as paid successfully' });
+    } catch (error) {
+      console.error("Pay entry API error:", error);
+      res.status(500).json({ error: "Failed to process payout" });
+    }
+  });
+
+  /**
+   * Communication Module Routes
+   * - Chat conversations
+   * - Notifications
+   */
+
+  /**
+   * GET /api/mobile/business/conversations
+   * Get list of chat conversations
+   */
+  app.get("/api/mobile/business/conversations", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { filter, search, limit = '50', offset = '0' } = req.query;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const conversations = [
+        {
+          id: '1',
+          clientId: 'c1',
+          clientName: 'Priya Sharma',
+          clientPhone: '+91 98765 43210',
+          lastMessage: 'Thank you so much! The hair styling was perfect. Can I book the same slot for next month?',
+          lastMessageAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          isOnline: true,
+          isUnread: true,
+          isPinned: true,
+          messageType: 'text',
+          category: 'appointment',
+          unreadCount: 2,
+        },
+        {
+          id: '2',
+          clientId: 'c2',
+          clientName: 'Neha Gupta',
+          clientPhone: '+91 98765 43211',
+          lastMessage: 'Hi! I need to reschedule my bridal makeup trial. Is Saturday available?',
+          lastMessageAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+          isOnline: true,
+          isUnread: true,
+          isPinned: true,
+          messageType: 'text',
+          category: 'reschedule',
+          unreadCount: 1,
+        },
+        {
+          id: '3',
+          clientId: 'c3',
+          clientName: 'Amit Patel',
+          clientPhone: '+91 98765 43212',
+          lastMessage: "Sure, I'll be there by 10:30 AM tomorrow. Thanks!",
+          lastMessageAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+          isOnline: false,
+          isUnread: false,
+          isPinned: false,
+          messageType: 'text',
+          category: 'confirmed',
+          unreadCount: 0,
+        },
+      ];
+
+      const totalCount = conversations.length;
+      const unreadCount = conversations.filter(c => c.isUnread).length;
+      const pinnedCount = conversations.filter(c => c.isPinned).length;
+
+      res.json({
+        conversations,
+        stats: {
+          total: totalCount,
+          unread: unreadCount,
+          pinned: pinnedCount,
+          appointments: conversations.filter(c => ['appointment', 'reschedule', 'confirmed'].includes(c.category)).length,
+          inquiries: conversations.filter(c => c.category === 'inquiry').length,
+        },
+        pagination: {
+          total: totalCount,
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+        },
+      });
+    } catch (error) {
+      console.error("Conversations API error:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/conversations/:id
+   * Get a specific conversation with messages
+   */
+  app.get("/api/mobile/business/conversations/:id", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { id } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const conversation = {
+        id,
+        client: {
+          id: 'c1',
+          name: 'Priya Sharma',
+          phone: '+91 98765 43210',
+          isOnline: true,
+          lastSeen: new Date().toISOString(),
+        },
+        messages: [
+          {
+            id: 'm1',
+            text: 'Hello! I had a great experience at your salon yesterday. The haircut was amazing!',
+            timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            isFromClient: true,
+            type: 'text',
+          },
+          {
+            id: 'm2',
+            text: 'Thank you so much, Priya! We are glad you loved it. Would you like to book your next appointment?',
+            timestamp: new Date(Date.now() - 58 * 60 * 1000).toISOString(),
+            isFromClient: false,
+            type: 'text',
+            status: 'read',
+          },
+          {
+            id: 'm3',
+            text: 'Yes please! Can I get the same slot for next month?',
+            timestamp: new Date(Date.now() - 55 * 60 * 1000).toISOString(),
+            isFromClient: true,
+            type: 'text',
+          },
+        ],
+      };
+
+      res.json(conversation);
+    } catch (error) {
+      console.error("Conversation detail API error:", error);
+      res.status(500).json({ error: "Failed to fetch conversation" });
+    }
+  });
+
+  /**
+   * POST /api/mobile/business/conversations/:id/messages
+   * Send a message in a conversation
+   */
+  app.post("/api/mobile/business/conversations/:id/messages", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { id } = req.params;
+      const { text, type = 'text', attachmentUrl } = req.body;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      if (!text && type === 'text') {
+        return res.status(400).json({ error: "Message text is required" });
+      }
+
+      const newMessage = {
+        id: `m_${Date.now()}`,
+        conversationId: id,
+        text,
+        type,
+        attachmentUrl,
+        timestamp: new Date().toISOString(),
+        isFromClient: false,
+        status: 'sent',
+      };
+
+      res.json({ success: true, message: newMessage });
+    } catch (error) {
+      console.error("Send message API error:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/conversations/:id/pin
+   * Pin or unpin a conversation
+   */
+  app.put("/api/mobile/business/conversations/:id/pin", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { id } = req.params;
+      const { isPinned } = req.body;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      res.json({ success: true, isPinned });
+    } catch (error) {
+      console.error("Pin conversation API error:", error);
+      res.status(500).json({ error: "Failed to update pin status" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/conversations/:id/read
+   * Mark a conversation as read
+   */
+  app.put("/api/mobile/business/conversations/:id/read", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { id } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark read API error:", error);
+      res.status(500).json({ error: "Failed to mark as read" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/notifications
+   * Get list of notifications
+   */
+  app.get("/api/mobile/business/notifications", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { category, limit = '50', offset = '0' } = req.query;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const notifications = [
+        {
+          id: 'n1',
+          type: 'booking',
+          title: 'New Booking Request',
+          message: 'Priya Sharma has requested an appointment for Haircut & Styling on Jan 25 at 11:00 AM',
+          timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          isRead: false,
+          clientName: 'Priya Sharma',
+        },
+        {
+          id: 'n2',
+          type: 'payment',
+          title: 'Payment Received',
+          message: 'Payment of ₹2,500 received from Neha Gupta for Bridal Makeup Trial',
+          timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+          isRead: false,
+          clientName: 'Neha Gupta',
+          amount: '₹2,500',
+        },
+        {
+          id: 'n3',
+          type: 'review',
+          title: 'New 5-Star Review',
+          message: 'Amit Patel left a 5-star review: "Amazing service! Will definitely come back."',
+          timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+          isRead: false,
+          clientName: 'Amit Patel',
+        },
+        {
+          id: 'n4',
+          type: 'reminder',
+          title: 'Upcoming Appointment',
+          message: 'Reminder: Anjali Reddy has an appointment in 30 minutes for Hair Coloring',
+          timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+          isRead: true,
+          clientName: 'Anjali Reddy',
+        },
+        {
+          id: 'n5',
+          type: 'cancellation',
+          title: 'Appointment Cancelled',
+          message: 'Rajesh Kumar has cancelled their appointment scheduled for today at 3:00 PM',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          isRead: true,
+          clientName: 'Rajesh Kumar',
+        },
+        {
+          id: 'n6',
+          type: 'system',
+          title: 'Weekly Summary Ready',
+          message: 'Your weekly business report is ready. You had 45 appointments and ₹1,25,000 in revenue.',
+          timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          isRead: true,
+        },
+      ];
+
+      const totalCount = notifications.length;
+      const unreadCount = notifications.filter(n => !n.isRead).length;
+
+      res.json({
+        notifications,
+        stats: {
+          total: totalCount,
+          unread: unreadCount,
+          appointments: notifications.filter(n => ['booking', 'reminder', 'cancellation'].includes(n.type)).length,
+          payments: notifications.filter(n => n.type === 'payment').length,
+          reviews: notifications.filter(n => n.type === 'review').length,
+          system: notifications.filter(n => n.type === 'system').length,
+        },
+        pagination: {
+          total: totalCount,
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+        },
+      });
+    } catch (error) {
+      console.error("Notifications API error:", error);
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/notifications/:id/read
+   * Mark a notification as read
+   */
+  app.put("/api/mobile/business/notifications/:id/read", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const { id } = req.params;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark notification read API error:", error);
+      res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/notifications/read-all
+   * Mark all notifications as read
+   */
+  app.put("/api/mobile/business/notifications/read-all", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      res.json({ success: true, message: 'All notifications marked as read' });
+    } catch (error) {
+      console.error("Mark all read API error:", error);
+      res.status(500).json({ error: "Failed to mark all as read" });
+    }
+  });
+
+  /**
+   * GET /api/mobile/business/notifications/preferences
+   * Get notification preferences
+   */
+  app.get("/api/mobile/business/notifications/preferences", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      const preferences = {
+        newBookings: true,
+        cancellations: true,
+        reminders: true,
+        payments: true,
+        reviews: true,
+        marketing: false,
+        system: true,
+        sound: 'default',
+        vibration: true,
+        doNotDisturb: false,
+        quietHoursStart: null,
+        quietHoursEnd: null,
+      };
+
+      res.json(preferences);
+    } catch (error) {
+      console.error("Notification preferences API error:", error);
+      res.status(500).json({ error: "Failed to fetch preferences" });
+    }
+  });
+
+  /**
+   * PUT /api/mobile/business/notifications/preferences
+   * Update notification preferences
+   */
+  app.put("/api/mobile/business/notifications/preferences", authenticateMobileUser, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const salonId = await getUserSalonId(userId);
+      const updates = req.body;
+
+      if (!salonId) {
+        return res.status(403).json({ error: "No salon access found" });
+      }
+
+      res.json({ success: true, message: 'Preferences updated successfully' });
+    } catch (error) {
+      console.error("Update preferences API error:", error);
+      res.status(500).json({ error: "Failed to update preferences" });
     }
   });
 

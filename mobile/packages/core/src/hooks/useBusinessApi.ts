@@ -12,6 +12,7 @@ import {
   inventoryManagementApi,
   settingsApi,
   payrollApi,
+  communicationApi,
   DashboardData, 
   TodayAppointmentsResponse, 
   DateAppointmentsResponse, 
@@ -80,6 +81,15 @@ import {
   CommissionStructure,
   CreatePayrollCycleParams,
   ProcessPayrollParams,
+  StaffPayrollBreakdown,
+  PayslipData,
+  Conversation,
+  ConversationsResponse,
+  ChatMessage,
+  ConversationDetail,
+  Notification,
+  NotificationsResponse,
+  CommunicationNotificationPreferences,
 } from '../services/businessApi';
 
 interface UseApiState<T> {
@@ -2279,6 +2289,30 @@ export function usePayrollActions() {
     return { success: true };
   }, []);
 
+  const approveCycle = useCallback(async (cycleId: string) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.approveCycle(cycleId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const payCycle = useCallback(async (cycleId: string, paymentMethod?: string, paymentReference?: string) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.payCycle(cycleId, paymentMethod, paymentReference);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const payEntry = useCallback(async (entryId: string, paymentMethod?: string, paymentReference?: string) => {
+    setIsSubmitting(true);
+    const response = await payrollApi.payEntry(entryId, paymentMethod, paymentReference);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
   const createCommissionStructure = useCallback(async (params: Omit<CommissionStructure, 'id'>) => {
     setIsSubmitting(true);
     const response = await payrollApi.createCommissionStructure(params);
@@ -2307,9 +2341,690 @@ export function usePayrollActions() {
     createPayrollCycle,
     processPayroll,
     markEntryPaid,
+    approveCycle,
+    payCycle,
+    payEntry,
     createCommissionStructure,
     updateCommissionStructure,
     exportPayrollReport,
+    isSubmitting,
+  };
+}
+
+export function usePayrollHistory(limit?: number): UseApiState<PayrollCycle[]> {
+  const [data, setData] = useState<PayrollCycle[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getPayrollHistory(limit);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [limit]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useStaffPayrollBreakdown(cycleId?: string): UseApiState<StaffPayrollBreakdown[]> {
+  const [data, setData] = useState<StaffPayrollBreakdown[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getStaffBreakdown(cycleId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [cycleId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function usePayslip(entryId?: string): UseApiState<PayslipData> {
+  const [data, setData] = useState<PayslipData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!entryId) return;
+    setLoading(true);
+    setError(null);
+    const response = await payrollApi.getPayslip(entryId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [entryId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useConversations(filter?: string, search?: string): UseApiState<ConversationsResponse> {
+  const [data, setData] = useState<ConversationsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await communicationApi.getConversations(filter, search);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [filter, search]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useConversation(id?: string): UseApiState<ConversationDetail> {
+  const [data, setData] = useState<ConversationDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    const response = await communicationApi.getConversation(id);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useNotifications(category?: string): UseApiState<NotificationsResponse> {
+  const [data, setData] = useState<NotificationsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await communicationApi.getNotifications(category);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [category]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useCommunicationNotificationPreferences(): UseApiState<CommunicationNotificationPreferences> {
+  const [data, setData] = useState<CommunicationNotificationPreferences | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await communicationApi.getNotificationPreferences();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useCommunicationActions() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const sendMessage = useCallback(async (conversationId: string, text: string, type?: string, attachmentUrl?: string): Promise<{ success: boolean; message?: ChatMessage; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await communicationApi.sendMessage(conversationId, text, type || 'text', attachmentUrl);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, message: response.data?.message };
+  }, []);
+
+  const pinConversation = useCallback(async (id: string, isPinned: boolean): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await communicationApi.pinConversation(id, isPinned);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const markConversationRead = useCallback(async (id: string): Promise<{ success: boolean; error?: string }> => {
+    const response = await communicationApi.markConversationRead(id);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const markNotificationRead = useCallback(async (id: string): Promise<{ success: boolean; error?: string }> => {
+    const response = await communicationApi.markNotificationRead(id);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const markAllNotificationsRead = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await communicationApi.markAllNotificationsRead();
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const updateNotificationPreferences = useCallback(async (preferences: Partial<CommunicationNotificationPreferences>): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await communicationApi.updateNotificationPreferences(preferences);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  return {
+    sendMessage,
+    pinConversation,
+    markConversationRead,
+    markNotificationRead,
+    markAllNotificationsRead,
+    updateNotificationPreferences,
+    isSubmitting,
+  };
+}
+
+// ============================================
+// Events Management Hooks
+// ============================================
+
+import {
+  eventsApi,
+  EventDashboardResponse,
+  EventsListResponse,
+  EventDetailResponse,
+  EventRegistrationsResponse,
+  EventWaitlistResponse,
+  EventAnalyticsResponse,
+  EventTypeOption,
+  CreateEventParams,
+  CreateTicketParams,
+  CreateSpeakerParams,
+  CreateScheduleItemParams,
+  CloneEventParams,
+  CheckInResult,
+  EventTicket,
+  EventSpeaker,
+  EventScheduleItem,
+} from '../services/businessApi';
+
+export function useEventsDashboard(): UseApiState<EventDashboardResponse> {
+  const [data, setData] = useState<EventDashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getDashboard();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventsList(params?: { status?: string; type?: string; search?: string }): UseApiState<EventsListResponse> {
+  const [data, setData] = useState<EventsListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getEventsList(params);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [params?.status, params?.type, params?.search]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventDrafts(): UseApiState<EventsListResponse> {
+  const [data, setData] = useState<EventsListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getDrafts();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function usePastEvents(): UseApiState<EventsListResponse> {
+  const [data, setData] = useState<EventsListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getPastEvents();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventDetail(eventId?: string): UseApiState<EventDetailResponse> {
+  const [data, setData] = useState<EventDetailResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!eventId) return;
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getEventDetail(eventId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [eventId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventRegistrations(eventId?: string, filter?: string, search?: string): UseApiState<EventRegistrationsResponse> {
+  const [data, setData] = useState<EventRegistrationsResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!eventId) return;
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getEventRegistrations(eventId, { filter, search });
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [eventId, filter, search]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventWaitlist(eventId?: string): UseApiState<EventWaitlistResponse> {
+  const [data, setData] = useState<EventWaitlistResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!eventId) return;
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getEventWaitlist(eventId);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [eventId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventAnalytics(eventId?: string, range?: '7d' | '30d' | 'all'): UseApiState<EventAnalyticsResponse> {
+  const [data, setData] = useState<EventAnalyticsResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!eventId) return;
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getEventAnalytics(eventId, range);
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, [eventId, range]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventTypes(): UseApiState<EventTypeOption[]> {
+  const [data, setData] = useState<EventTypeOption[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const response = await eventsApi.getEventTypes();
+    if (response.error) {
+      setError(response.error);
+    } else if (response.data) {
+      setData(response.data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+export function useEventsActions() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createEvent = useCallback(async (params: CreateEventParams): Promise<{ success: boolean; id?: string; slug?: string; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.createEvent(params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, id: response.data?.id, slug: response.data?.slug };
+  }, []);
+
+  const updateEvent = useCallback(async (eventId: string, params: Partial<CreateEventParams>): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.updateEvent(eventId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const publishEvent = useCallback(async (eventId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.publishEvent(eventId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const deleteEvent = useCallback(async (eventId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.deleteEvent(eventId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const cloneEvent = useCallback(async (eventId: string, params: CloneEventParams): Promise<{ success: boolean; id?: string; slug?: string; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.cloneEvent(eventId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, id: response.data?.id, slug: response.data?.slug };
+  }, []);
+
+  const addTicket = useCallback(async (eventId: string, params: CreateTicketParams): Promise<{ success: boolean; id?: string; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.addTicket(eventId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, id: response.data?.id };
+  }, []);
+
+  const updateTicket = useCallback(async (eventId: string, ticketId: string, params: Partial<CreateTicketParams>): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.updateTicket(eventId, ticketId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const deleteTicket = useCallback(async (eventId: string, ticketId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.deleteTicket(eventId, ticketId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const addSpeaker = useCallback(async (eventId: string, params: CreateSpeakerParams): Promise<{ success: boolean; id?: string; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.addSpeaker(eventId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, id: response.data?.id };
+  }, []);
+
+  const updateSpeaker = useCallback(async (eventId: string, speakerId: string, params: Partial<CreateSpeakerParams>): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.updateSpeaker(eventId, speakerId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const deleteSpeaker = useCallback(async (eventId: string, speakerId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.deleteSpeaker(eventId, speakerId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const addScheduleItem = useCallback(async (eventId: string, params: CreateScheduleItemParams): Promise<{ success: boolean; id?: string; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.addScheduleItem(eventId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, id: response.data?.id };
+  }, []);
+
+  const updateScheduleItem = useCallback(async (eventId: string, scheduleId: string, params: Partial<CreateScheduleItemParams>): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.updateScheduleItem(eventId, scheduleId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const deleteScheduleItem = useCallback(async (eventId: string, scheduleId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.deleteScheduleItem(eventId, scheduleId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const checkIn = useCallback(async (eventId: string, params: { qrCode?: string; registrationId?: string; isLate?: boolean }): Promise<CheckInResult> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.checkIn(eventId, params);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return response.data || { success: false, error: 'Unknown error' };
+  }, []);
+
+  const batchCheckIn = useCallback(async (eventId: string, registrationIds: string[], isLate?: boolean): Promise<{ success: boolean; results?: CheckInResult[]; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.batchCheckIn(eventId, registrationIds, isLate);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, results: response.data?.results };
+  }, []);
+
+  const notifyWaitlistEntry = useCallback(async (eventId: string, waitlistId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.notifyWaitlistEntry(eventId, waitlistId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const confirmWaitlistEntry = useCallback(async (eventId: string, waitlistId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.confirmWaitlistEntry(eventId, waitlistId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const removeFromWaitlist = useCallback(async (eventId: string, waitlistId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.removeFromWaitlist(eventId, waitlistId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  const messageAllAttendees = useCallback(async (eventId: string, message: string): Promise<{ success: boolean; sentCount?: number; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.messageAllAttendees(eventId, message);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, sentCount: response.data?.sentCount };
+  }, []);
+
+  const exportAttendees = useCallback(async (eventId: string, format: 'csv' | 'pdf'): Promise<{ success: boolean; downloadUrl?: string; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.exportAttendees(eventId, format);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true, downloadUrl: response.data?.downloadUrl };
+  }, []);
+
+  const markNoShow = useCallback(async (eventId: string, registrationId: string): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    const response = await eventsApi.markNoShow(eventId, registrationId);
+    setIsSubmitting(false);
+    if (response.error) return { success: false, error: response.error };
+    return { success: true };
+  }, []);
+
+  return {
+    createEvent,
+    updateEvent,
+    publishEvent,
+    deleteEvent,
+    cloneEvent,
+    addTicket,
+    updateTicket,
+    deleteTicket,
+    addSpeaker,
+    updateSpeaker,
+    deleteSpeaker,
+    addScheduleItem,
+    updateScheduleItem,
+    deleteScheduleItem,
+    checkIn,
+    batchCheckIn,
+    notifyWaitlistEntry,
+    confirmWaitlistEntry,
+    removeFromWaitlist,
+    messageAllAttendees,
+    exportAttendees,
+    markNoShow,
     isSubmitting,
   };
 }

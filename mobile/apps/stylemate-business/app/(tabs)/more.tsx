@@ -69,7 +69,7 @@ export default function MoreScreen() {
           <MenuItem icon="📊" label="Analytics" subtitle="Revenue & insights" onPress={() => {}} />
           <MenuItem icon="📦" label="Inventory" subtitle="Stock management" onPress={() => {}} />
           <MenuItem icon="💰" label="Payments" subtitle="Transactions & payouts" badge="3" onPress={() => {}} />
-          <MenuItem icon="🎁" label="Promotions" subtitle="Offers & discounts" onPress={() => {}} />
+          <MenuItem icon="📢" label="Marketing & Offers" subtitle="Campaigns & promotions" onPress={() => router.push('/marketing')} />
         </MenuSection>
 
         <MenuSection title="Services">

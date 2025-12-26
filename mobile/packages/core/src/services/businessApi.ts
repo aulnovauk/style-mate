@@ -2426,6 +2426,44 @@ export interface PayrollEntry {
   absentDays: number;
 }
 
+export interface StaffPayrollBreakdown {
+  entryId: string;
+  staffId: string;
+  staffName: string | null;
+  staffEmail: string | null;
+  baseSalaryPaisa: number | null;
+  allowancesPaisa: number | null;
+  commissionEarningsPaisa: number | null;
+  tipsReceivedPaisa: number | null;
+  bonusesPaisa: number | null;
+  grossEarningsPaisa: number | null;
+  totalDeductionsPaisa: number | null;
+  netPayablePaisa: number | null;
+  paymentStatus: string | null;
+}
+
+export interface PayslipData {
+  payslipId: string;
+  generatedAt: string;
+  salon: { name: string; address: string | null; city: string | null };
+  employee: { name: string; email: string | null; phone: string | null };
+  period: { periodMonth: number; periodYear: number; periodStartDate?: string; periodEndDate?: string };
+  earnings: {
+    baseSalary: number;
+    allowances: number;
+    commission: number;
+    tips: number;
+    bonus: number;
+    grossEarnings: number;
+  };
+  deductions: {
+    totalDeductions: number;
+  };
+  netPayable: number;
+  paymentStatus: string | null;
+  paidAt: string | null;
+}
+
 export interface CommissionStructure {
   id: string;
   name: string;
@@ -2544,6 +2582,208 @@ export const payrollApi = {
   async exportPayrollReport(cycleId: string, format: 'pdf' | 'excel'): Promise<ApiResponse<{ downloadUrl: string }>> {
     return apiRequest(`/api/mobile/business/payroll/cycles/${cycleId}/export?format=${format}`);
   },
+
+  async approveCycle(cycleId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/payroll/cycles/${cycleId}/approve`, {
+      method: 'PUT',
+    });
+  },
+
+  async payCycle(cycleId: string, paymentMethod?: string, paymentReference?: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/payroll/cycles/${cycleId}/pay`, {
+      method: 'PUT',
+      body: JSON.stringify({ paymentMethod, paymentReference }),
+    });
+  },
+
+  async getPayrollHistory(limit?: number, offset?: number): Promise<ApiResponse<PayrollCycle[]>> {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return apiRequest(`/api/mobile/business/payroll/history${queryString}`);
+  },
+
+  async getStaffBreakdown(cycleId?: string): Promise<ApiResponse<StaffPayrollBreakdown[]>> {
+    const params = cycleId ? `?cycleId=${cycleId}` : '';
+    return apiRequest(`/api/mobile/business/payroll/staff-breakdown${params}`);
+  },
+
+  async getPayslip(entryId: string): Promise<ApiResponse<PayslipData>> {
+    return apiRequest(`/api/mobile/business/payroll/entries/${entryId}/payslip`);
+  },
+
+  async payEntry(entryId: string, paymentMethod?: string, paymentReference?: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/payroll/entries/${entryId}/pay`, {
+      method: 'PUT',
+      body: JSON.stringify({ paymentMethod, paymentReference }),
+    });
+  },
+};
+
+export interface Conversation {
+  id: string;
+  clientId: string;
+  clientName: string;
+  clientPhone: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  isOnline: boolean;
+  isUnread: boolean;
+  isPinned: boolean;
+  messageType: 'text' | 'image' | 'file';
+  category: string;
+  unreadCount: number;
+}
+
+export interface ConversationsResponse {
+  conversations: Conversation[];
+  stats: {
+    total: number;
+    unread: number;
+    pinned: number;
+    appointments: number;
+    inquiries: number;
+  };
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
+}
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  timestamp: string;
+  isFromClient: boolean;
+  type: 'text' | 'image' | 'file' | 'appointment';
+  status?: 'sent' | 'delivered' | 'read';
+  attachmentUrl?: string;
+  attachmentName?: string;
+}
+
+export interface ConversationDetail {
+  id: string;
+  client: {
+    id: string;
+    name: string;
+    phone: string;
+    isOnline: boolean;
+    lastSeen?: string;
+  };
+  messages: ChatMessage[];
+}
+
+export interface Notification {
+  id: string;
+  type: 'booking' | 'payment' | 'review' | 'reminder' | 'cancellation' | 'system';
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+  clientName?: string;
+  amount?: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  stats: {
+    total: number;
+    unread: number;
+    appointments: number;
+    payments: number;
+    reviews: number;
+    system: number;
+  };
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
+}
+
+export interface CommunicationNotificationPreferences {
+  newBookings: boolean;
+  cancellations: boolean;
+  reminders: boolean;
+  payments: boolean;
+  reviews: boolean;
+  marketing: boolean;
+  system: boolean;
+  sound: string;
+  vibration: boolean;
+  doNotDisturb: boolean;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
+}
+
+export const communicationApi = {
+  async getConversations(filter?: string, search?: string, limit?: number, offset?: number): Promise<ApiResponse<ConversationsResponse>> {
+    const params = new URLSearchParams();
+    if (filter) params.append('filter', filter);
+    if (search) params.append('search', search);
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return apiRequest(`/api/mobile/business/conversations${queryString}`);
+  },
+
+  async getConversation(id: string): Promise<ApiResponse<ConversationDetail>> {
+    return apiRequest(`/api/mobile/business/conversations/${id}`);
+  },
+
+  async sendMessage(conversationId: string, text: string, type: string = 'text', attachmentUrl?: string): Promise<ApiResponse<{ success: boolean; message: ChatMessage }>> {
+    return apiRequest(`/api/mobile/business/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ text, type, attachmentUrl }),
+    });
+  },
+
+  async pinConversation(id: string, isPinned: boolean): Promise<ApiResponse<{ success: boolean; isPinned: boolean }>> {
+    return apiRequest(`/api/mobile/business/conversations/${id}/pin`, {
+      method: 'PUT',
+      body: JSON.stringify({ isPinned }),
+    });
+  },
+
+  async markConversationRead(id: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/mobile/business/conversations/${id}/read`, {
+      method: 'PUT',
+    });
+  },
+
+  async getNotifications(category?: string, limit?: number, offset?: number): Promise<ApiResponse<NotificationsResponse>> {
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return apiRequest(`/api/mobile/business/notifications${queryString}`);
+  },
+
+  async markNotificationRead(id: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/mobile/business/notifications/${id}/read`, {
+      method: 'PUT',
+    });
+  },
+
+  async markAllNotificationsRead(): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest(`/api/mobile/business/notifications/read-all`, {
+      method: 'PUT',
+    });
+  },
+
+  async getNotificationPreferences(): Promise<ApiResponse<CommunicationNotificationPreferences>> {
+    return apiRequest('/api/mobile/business/notifications/preferences');
+  },
+
+  async updateNotificationPreferences(preferences: Partial<CommunicationNotificationPreferences>): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return apiRequest('/api/mobile/business/notifications/preferences', {
+      method: 'PUT',
+      body: JSON.stringify(preferences),
+    });
+  },
 };
 
 export const settingsApi = {
@@ -2597,4 +2837,1026 @@ export const settingsApi = {
 
 Object.assign(businessApi, settingsApi);
 
+// ============================================
+// Events Management Types
+// ============================================
+
+export interface EventDashboardStats {
+  activeEvents: number;
+  totalRegistrations: number;
+  revenue: number;
+  revenueFormatted: string;
+  waitlisted: number;
+  fillRate: number;
+  avgRating: number;
+}
+
+export interface EventListItem {
+  id: string;
+  title: string;
+  slug: string;
+  eventType: string;
+  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  visibility: 'public' | 'private' | 'invite_only';
+  coverImage: string | null;
+  shortDescription: string | null;
+  startDate: string;
+  endDate: string | null;
+  startTime: string;
+  endTime: string;
+  venueName: string;
+  venueAddress: string;
+  city: string;
+  maxCapacity: number;
+  currentRegistrations: number;
+  spotsLeft: number;
+  waitlistCount: number;
+  revenue: number;
+  revenueFormatted: string;
+  avgRating: number | null;
+  isRecurring: boolean;
+  recurringType: string | null;
+  newRegistrationsToday: number;
+  completionPercentage?: number;
+  missingFields?: string[];
+}
+
+export interface TodayEventAlert {
+  id: string;
+  title: string;
+  startTime: string;
+  attendees: number;
+  checkedIn: number;
+}
+
+export interface EventDashboardResponse {
+  stats: EventDashboardStats;
+  todayEvents: TodayEventAlert[];
+  upcomingEvents: EventListItem[];
+  draftsCount: number;
+}
+
+export interface EventsListResponse {
+  events: EventListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface EventTicket {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  priceFormatted: string;
+  quantity: number;
+  soldCount: number;
+  maxPerPerson: number;
+  earlyBirdPrice: number | null;
+  earlyBirdEndDate: string | null;
+  salesPercentage: number;
+  revenue: number;
+  revenueFormatted: string;
+  perks: string[];
+}
+
+export interface EventSpeaker {
+  id: string;
+  name: string;
+  title: string | null;
+  bio: string | null;
+  photoUrl: string | null;
+  socialLinks: { platform: string; url: string }[];
+}
+
+export interface EventScheduleItem {
+  id: string;
+  startTime: string;
+  endTime: string;
+  title: string;
+  description: string | null;
+  speakerId: string | null;
+  speakerName: string | null;
+  location: string | null;
+  type: 'session' | 'break' | 'registration' | 'networking';
+}
+
+export interface WaitlistEntry {
+  id: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  attendeePhone: string | null;
+  ticketTypeName: string;
+  ticketQuantity: number;
+  position: number;
+  createdAt: string;
+  notifiedAt: string | null;
+}
+
+export interface EventRegistration {
+  id: string;
+  bookingId: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  attendeePhone: string | null;
+  ticketTypeName: string;
+  ticketQuantity: number;
+  totalAmount: number;
+  totalAmountFormatted: string;
+  paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
+  checkInStatus: 'not_checked_in' | 'checked_in' | 'late' | 'no_show';
+  checkedInAt: string | null;
+  registeredAt: string;
+  guests: { name: string; email: string }[];
+  isBirthday: boolean;
+  isFirstEvent: boolean;
+  eventCount: number;
+  missingInfo: string[];
+}
+
+export interface EventDetailResponse {
+  id: string;
+  title: string;
+  slug: string;
+  eventType: string;
+  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  visibility: 'public' | 'private' | 'invite_only';
+  coverImage: string | null;
+  shortDescription: string | null;
+  fullDescription: string | null;
+  startDate: string;
+  endDate: string | null;
+  startTime: string;
+  endTime: string;
+  venueName: string;
+  venueAddress: string;
+  city: string;
+  venuePhone: string | null;
+  maxCapacity: number;
+  currentRegistrations: number;
+  spotsLeft: number;
+  waitlistCount: number;
+  revenue: number;
+  revenueFormatted: string;
+  avgRating: number | null;
+  isRecurring: boolean;
+  recurringType: string | null;
+  whatToBring: string[];
+  includedItems: string[];
+  cancellationPolicy: {
+    fullRefundHours: number;
+    partialRefundHours: number;
+    partialRefundPercentage: number;
+  } | null;
+  noShowFeePercentage: number | null;
+  tickets: EventTicket[];
+  speakers: EventSpeaker[];
+  schedule: EventScheduleItem[];
+}
+
+export interface EventRegistrationsResponse {
+  registrations: EventRegistration[];
+  total: number;
+  checkedIn: number;
+  notCheckedIn: number;
+  late: number;
+  noShow: number;
+}
+
+export interface EventWaitlistResponse {
+  waitlist: WaitlistEntry[];
+  total: number;
+  autoNotify: boolean;
+  requireManualConfirmation: boolean;
+}
+
+export interface CheckInResult {
+  success: boolean;
+  registration?: EventRegistration;
+  error?: string;
+  alreadyCheckedIn?: boolean;
+  checkedInAt?: string;
+}
+
+export interface EventAnalyticsResponse {
+  eventId: string;
+  eventTitle: string;
+  totalRegistrations: number;
+  attended: number;
+  attendanceRate: number;
+  noShows: number;
+  lateCancellations: number;
+  totalRevenue: number;
+  revenueFormatted: string;
+  revenuePerPerson: number;
+  revenuePerPersonFormatted: string;
+  repeatAttendees: number;
+  repeatAttendeesPercentage: number;
+  firstTimeAttendees: number;
+  guestCount: number;
+  vipCount: number;
+  avgRating: number | null;
+  reviewCount: number;
+  ticketPerformance: {
+    ticketId: string;
+    ticketName: string;
+    sold: number;
+    capacity: number;
+    percentage: number;
+    revenue: number;
+    avgDaysBeforeEvent: number;
+    soldOutDaysBefore: number | null;
+  }[];
+  promoCodePerformance: {
+    code: string;
+    usedCount: number;
+    discountTotal: number;
+    revenueGenerated: number;
+  }[];
+  registrationsByDay: { date: string; count: number }[];
+  peakRegistrationDate: string | null;
+  aiInsights: string[];
+  comparison: {
+    eventId: string;
+    eventTitle: string;
+    registrationsDiff: number;
+    registrationsDiffPercentage: number;
+    revenueDiff: number;
+    revenueDiffPercentage: number;
+    attendanceDiff: number;
+  } | null;
+  feedback: {
+    id: string;
+    rating: number;
+    comment: string;
+    attendeeName: string;
+    createdAt: string;
+  }[];
+}
+
+export interface CreateEventParams {
+  title: string;
+  eventTypeId: string;
+  shortDescription: string;
+  fullDescription?: string;
+  coverImage?: string;
+  startDate: string;
+  endDate?: string;
+  startTime: string;
+  endTime: string;
+  venueName: string;
+  venueAddress: string;
+  city: string;
+  venuePhone?: string;
+  visibility: 'public' | 'private' | 'invite_only';
+  maxCapacity: number;
+  isRecurring?: boolean;
+  recurringType?: 'daily' | 'weekly' | 'monthly' | 'custom';
+  recurringEndDate?: string;
+  recurringCount?: number;
+  enableWaitlist?: boolean;
+  autoNotifyWaitlist?: boolean;
+  requireManualConfirmation?: boolean;
+  waitlistCapacity?: number;
+  allowGuestBooking?: boolean;
+  maxGuestsPerBooking?: number;
+  registrationDeadlineHours?: number;
+  sendConfirmationEmail?: boolean;
+  sendCalendarInvite?: boolean;
+  sendReminder24h?: boolean;
+  sendReminder2h?: boolean;
+  whatToBring?: string[];
+  includedItems?: string[];
+  cancellationFullRefundHours?: number;
+  cancellationPartialRefundHours?: number;
+  cancellationPartialRefundPercentage?: number;
+  noShowFeePercentage?: number;
+}
+
+export interface CreateTicketParams {
+  name: string;
+  description?: string;
+  price: number;
+  quantity: number;
+  maxPerPerson?: number;
+  earlyBirdPrice?: number;
+  earlyBirdEndDate?: string;
+  perks?: string[];
+}
+
+export interface CreateSpeakerParams {
+  name: string;
+  title?: string;
+  bio?: string;
+  photoUrl?: string;
+  socialLinks?: { platform: string; url: string }[];
+}
+
+export interface CreateScheduleItemParams {
+  startTime: string;
+  endTime: string;
+  title: string;
+  description?: string;
+  speakerId?: string;
+  location?: string;
+  type?: 'session' | 'break' | 'registration' | 'networking';
+}
+
+export interface CloneEventParams {
+  cloneBasicInfo: boolean;
+  cloneTickets: boolean;
+  cloneSpeakers: boolean;
+  cloneSchedule: boolean;
+  clonePolicies: boolean;
+  cloneWhatToBring: boolean;
+  cloneVenue: boolean;
+  cloneCoverImage: boolean;
+  clonePromoCodes: boolean;
+  newStartDate: string;
+  newVenueName?: string;
+  newVenueAddress?: string;
+  newCity?: string;
+}
+
+export interface EventTypeOption {
+  id: string;
+  name: string;
+  icon: string;
+  description: string | null;
+}
+
+// ============================================
+// Events Management API
+// ============================================
+
+export const eventsApi = {
+  async getEventTypes(): Promise<ApiResponse<EventTypeOption[]>> {
+    return apiRequest('/api/events/types');
+  },
+
+  async getDashboard(): Promise<ApiResponse<EventDashboardResponse>> {
+    return apiRequest('/api/events/business/dashboard');
+  },
+
+  async getEventsList(params?: { status?: string; type?: string; search?: string; page?: number; limit?: number }): Promise<ApiResponse<EventsListResponse>> {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.type) searchParams.append('type', params.type);
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return apiRequest(`/api/events/business/list${queryString}`);
+  },
+
+  async getDrafts(): Promise<ApiResponse<EventsListResponse>> {
+    return apiRequest('/api/events/business/drafts');
+  },
+
+  async getPastEvents(params?: { page?: number; limit?: number }): Promise<ApiResponse<EventsListResponse>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return apiRequest(`/api/events/business/past${queryString}`);
+  },
+
+  async getEventDetail(eventId: string): Promise<ApiResponse<EventDetailResponse>> {
+    return apiRequest(`/api/events/business/${eventId}`);
+  },
+
+  async getEventRegistrations(eventId: string, params?: { filter?: string; search?: string }): Promise<ApiResponse<EventRegistrationsResponse>> {
+    const searchParams = new URLSearchParams();
+    if (params?.filter) searchParams.append('filter', params.filter);
+    if (params?.search) searchParams.append('search', params.search);
+    const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return apiRequest(`/api/events/${eventId}/export/attendees${queryString}`);
+  },
+
+  async getEventWaitlist(eventId: string): Promise<ApiResponse<EventWaitlistResponse>> {
+    return apiRequest(`/api/events/business/${eventId}/waitlist`);
+  },
+
+  async getEventTickets(eventId: string): Promise<ApiResponse<{ tickets: EventTicket[] }>> {
+    return apiRequest(`/api/events/business/${eventId}/tickets`);
+  },
+
+  async getEventSpeakers(eventId: string): Promise<ApiResponse<{ speakers: EventSpeaker[] }>> {
+    return apiRequest(`/api/events/business/${eventId}/speakers`);
+  },
+
+  async getEventSchedule(eventId: string): Promise<ApiResponse<{ schedule: EventScheduleItem[] }>> {
+    return apiRequest(`/api/events/business/${eventId}/schedule`);
+  },
+
+  async getEventAnalytics(eventId: string, range?: '7d' | '30d' | 'all'): Promise<ApiResponse<EventAnalyticsResponse>> {
+    const queryString = range ? `?range=${range}` : '';
+    return apiRequest(`/api/events/business/analytics${queryString}&eventId=${eventId}`);
+  },
+
+  async createEvent(params: CreateEventParams): Promise<ApiResponse<{ id: string; slug: string }>> {
+    return apiRequest('/api/events', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateEvent(eventId: string, params: Partial<CreateEventParams>): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/${eventId}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async publishEvent(eventId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/publish`, {
+      method: 'PUT',
+    });
+  },
+
+  async deleteEvent(eventId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/${eventId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async cloneEvent(eventId: string, params: CloneEventParams): Promise<ApiResponse<{ id: string; slug: string }>> {
+    return apiRequest(`/api/events/${eventId}/clone`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async addTicket(eventId: string, params: CreateTicketParams): Promise<ApiResponse<{ id: string }>> {
+    return apiRequest(`/api/events/business/${eventId}/tickets`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateTicket(eventId: string, ticketId: string, params: Partial<CreateTicketParams>): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/tickets/${ticketId}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async deleteTicket(eventId: string, ticketId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/tickets/${ticketId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async addSpeaker(eventId: string, params: CreateSpeakerParams): Promise<ApiResponse<{ id: string }>> {
+    return apiRequest(`/api/events/business/${eventId}/speakers`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateSpeaker(eventId: string, speakerId: string, params: Partial<CreateSpeakerParams>): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/speakers/${speakerId}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async deleteSpeaker(eventId: string, speakerId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/speakers/${speakerId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async addScheduleItem(eventId: string, params: CreateScheduleItemParams): Promise<ApiResponse<{ id: string }>> {
+    return apiRequest(`/api/events/business/${eventId}/schedule`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateScheduleItem(eventId: string, scheduleId: string, params: Partial<CreateScheduleItemParams>): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/schedule/${scheduleId}`, {
+      method: 'PUT',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async deleteScheduleItem(eventId: string, scheduleId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/schedule/${scheduleId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async checkIn(eventId: string, params: { qrCode?: string; registrationId?: string; isLate?: boolean }): Promise<ApiResponse<CheckInResult>> {
+    return apiRequest(`/api/events/business/${eventId}/check-in`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async batchCheckIn(eventId: string, registrationIds: string[], isLate?: boolean): Promise<ApiResponse<{ success: boolean; results: CheckInResult[] }>> {
+    return apiRequest(`/api/events/business/${eventId}/check-in/batch`, {
+      method: 'POST',
+      body: JSON.stringify({ registrationIds, isLate }),
+    });
+  },
+
+  async notifyWaitlistEntry(eventId: string, waitlistId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/waitlist/${waitlistId}/notify`, {
+      method: 'POST',
+    });
+  },
+
+  async confirmWaitlistEntry(eventId: string, waitlistId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/waitlist/${waitlistId}/confirm`, {
+      method: 'POST',
+    });
+  },
+
+  async removeFromWaitlist(eventId: string, waitlistId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/waitlist/${waitlistId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async messageAllAttendees(eventId: string, message: string): Promise<ApiResponse<{ success: boolean; sentCount: number }>> {
+    return apiRequest(`/api/events/business/${eventId}/message-all`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  },
+
+  async exportAttendees(eventId: string, format: 'csv' | 'pdf'): Promise<ApiResponse<{ downloadUrl: string }>> {
+    return apiRequest(`/api/events/business/${eventId}/analytics/export?format=${format}`);
+  },
+
+  async markNoShow(eventId: string, registrationId: string): Promise<ApiResponse<{ success: boolean }>> {
+    return apiRequest(`/api/events/business/${eventId}/registrations/${registrationId}/no-show`, {
+      method: 'PUT',
+    });
+  },
+};
+
 export default businessApi;
+
+// ============================================
+// Marketing Types
+// ============================================
+
+export interface OfferDashboardStats {
+  totalOffers: number;
+  activeOffers: number;
+  totalRedemptions: number;
+  attributedRevenue: { value: number; formatted: string };
+  conversionRate: number;
+}
+
+export interface SlowDayAlert {
+  date: string;
+  dayName: string;
+  occupancy: number;
+  suggestedAction: string;
+}
+
+export interface OfferActivity {
+  id: string;
+  type: 'redemption' | 'created' | 'expired' | 'paused';
+  offerId: string;
+  offerTitle: string;
+  customerName?: string;
+  timestamp: string;
+  amount?: number;
+}
+
+export interface OfferDashboardResponse {
+  stats: OfferDashboardStats;
+  slowDayAlerts: SlowDayAlert[];
+  topPerformingOffers: OfferSummary[];
+  recentActivity: OfferActivity[];
+}
+
+export interface OfferSummary {
+  id: string;
+  title: string;
+  type: 'promo_code' | 'flash_sale' | 'intro_offer' | 'staff_special';
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  promoCode?: string;
+  status: 'active' | 'paused' | 'scheduled' | 'expired' | 'archived';
+  usageCount: number;
+  usageLimit?: number;
+  validFrom: string;
+  validUntil?: string;
+  attributedRevenue: { value: number; formatted: string };
+  conversionRate: number;
+  imageUrl?: string;
+}
+
+export interface OfferTargeting {
+  audience: 'all' | 'new' | 'vip' | 'inactive' | 'custom';
+  customSegmentId?: string;
+  servicesScope: 'all' | 'categories' | 'products' | 'services';
+  categoryIds?: string[];
+  staffScope: 'all' | 'specific';
+  staffIds?: string[];
+}
+
+export interface OfferLimits {
+  perClient: number;
+  totalUsage?: number;
+  minPurchase?: number;
+  maxDiscount?: number;
+}
+
+export interface OfferDistribution {
+  onlineCheckout: boolean;
+  posCheckout: boolean;
+}
+
+export interface OfferDetail extends OfferSummary {
+  description: string;
+  targeting: OfferTargeting;
+  limits: OfferLimits;
+  distribution: OfferDistribution;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OfferPerformance {
+  totalRedemptions: number;
+  uniqueClients: number;
+  attributedRevenue: { value: number; formatted: string };
+  avgOrderValue: { value: number; formatted: string };
+  conversionRate: number;
+  byDate: { date: string; redemptions: number; revenue: number }[];
+  byChannel: { channel: string; count: number }[];
+}
+
+export interface CreateOfferParams {
+  title: string;
+  description?: string;
+  type: 'promo_code' | 'flash_sale' | 'intro_offer' | 'staff_special';
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  promoCode?: string;
+  targeting: OfferTargeting;
+  limits: OfferLimits;
+  distribution: OfferDistribution;
+  validFrom: string;
+  validUntil?: string;
+  isScheduled?: boolean;
+  imageUrl?: string;
+}
+
+export interface WelcomeOffer {
+  id: string;
+  title: string;
+  description: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minPurchase?: number;
+  maxDiscount?: number;
+  validityDays: number;
+  usageLimit: number;
+  isActive: boolean;
+  assignedCount: number;
+  redeemedCount: number;
+}
+
+export interface WelcomeOffersResponse {
+  offers: WelcomeOffer[];
+  stats: {
+    active: number;
+    assigned: number;
+    redeemed: number;
+  };
+}
+
+export interface CampaignDashboardStats {
+  totalSent: number;
+  readRate: number;
+  clickRate: number;
+  attributedRevenue: { value: number; formatted: string };
+}
+
+export interface MessageQuota {
+  used: number;
+  total: number;
+  resetDate: string;
+}
+
+export interface SmartSuggestion {
+  type: 'win_back' | 'rebook' | 'birthday' | 'fill_slots';
+  title: string;
+  description: string;
+  targetCount: number;
+  suggestedAction: string;
+}
+
+export interface CampaignDashboardResponse {
+  stats: CampaignDashboardStats;
+  quota: MessageQuota;
+  suggestions: SmartSuggestion[];
+  recentCampaigns: CampaignSummary[];
+}
+
+export interface CampaignSummary {
+  id: string;
+  name: string;
+  channel: 'whatsapp' | 'sms' | 'both';
+  status: 'draft' | 'scheduled' | 'sending' | 'completed' | 'paused' | 'failed';
+  targetCount: number;
+  sentCount: number;
+  deliveredCount: number;
+  readCount: number;
+  clickedCount: number;
+  scheduledAt?: string;
+  sentAt?: string;
+  completedAt?: string;
+  linkedOfferId?: string;
+  attributedRevenue?: { value: number; formatted: string };
+}
+
+export interface CampaignRecipient {
+  id: string;
+  name: string;
+  phone: string;
+  status: 'pending' | 'sent' | 'delivered' | 'read' | 'clicked' | 'failed';
+  deliveredAt?: string;
+  readAt?: string;
+  clickedAt?: string;
+}
+
+export interface CampaignAudience {
+  type: 'all' | 'segment' | 'custom';
+  segmentId?: string;
+  filters?: object;
+}
+
+export interface CampaignDetail extends CampaignSummary {
+  message: string;
+  variables: string[];
+  audience: CampaignAudience;
+  recipients: CampaignRecipient[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MessageTemplate {
+  id: string;
+  name: string;
+  category: 'promotional' | 'reminder' | 'follow_up' | 'custom';
+  message: string;
+  variables: string[];
+}
+
+export interface CreateCampaignParams {
+  name: string;
+  channel: 'whatsapp' | 'sms' | 'both';
+  message: string;
+  audience: CampaignAudience;
+  linkedOfferId?: string;
+  scheduledAt?: string;
+  sendNow?: boolean;
+}
+
+export interface AutomationTrigger {
+  type: string;
+  value: number;
+  unit: 'days' | 'hours' | 'weeks';
+}
+
+export interface AutomationStats {
+  sent30d: number;
+  converted30d: number;
+  conversionRate: number;
+  attributedRevenue: { value: number; formatted: string };
+}
+
+export interface AutomationWorkflow {
+  id: string;
+  type: 'rebook_reminder' | 'birthday' | 'win_back' | 'review_request' | 'fill_slow_days';
+  name: string;
+  description: string;
+  isActive: boolean;
+  trigger: AutomationTrigger;
+  message: string;
+  linkedOfferId?: string;
+  performance: AutomationStats;
+}
+
+export interface AutomationsListResponse {
+  automations: AutomationWorkflow[];
+}
+
+export interface UpdateAutomationParams {
+  isActive?: boolean;
+  trigger?: AutomationTrigger;
+  message?: string;
+  linkedOfferId?: string;
+}
+
+export interface OffersListResponse {
+  offers: OfferSummary[];
+  total: number;
+}
+
+export interface CampaignsListResponse {
+  campaigns: CampaignSummary[];
+  total: number;
+}
+
+export interface CampaignRecipientsResponse {
+  recipients: CampaignRecipient[];
+  total: number;
+  page: number;
+}
+
+export interface MessageTemplatesResponse {
+  templates: MessageTemplate[];
+}
+
+export interface MutationResult {
+  success: boolean;
+  error?: string;
+  id?: string;
+}
+
+// ============================================
+// Marketing API (Mobile Business App)
+// Base path: /api/mobile/business/marketing
+// ============================================
+
+const MARKETING_BASE = '/api/mobile/business/marketing';
+
+export const marketingApi = {
+  // Offers
+  async getOffersDashboard(): Promise<ApiResponse<OfferDashboardResponse>> {
+    return apiRequest(`${MARKETING_BASE}/offers/dashboard`);
+  },
+
+  async getOffersList(params?: { status?: string; type?: string; search?: string }): Promise<ApiResponse<OffersListResponse>> {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.type) searchParams.append('type', params.type);
+    if (params?.search) searchParams.append('search', params.search);
+    const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return apiRequest(`${MARKETING_BASE}/offers${queryString}`);
+  },
+
+  async getOfferDetail(id: string): Promise<ApiResponse<OfferDetail>> {
+    return apiRequest(`${MARKETING_BASE}/offers/${id}`);
+  },
+
+  async getOfferPerformance(id: string): Promise<ApiResponse<OfferPerformance>> {
+    return apiRequest(`${MARKETING_BASE}/offers/${id}/performance`);
+  },
+
+  async createOffer(params: CreateOfferParams): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/offers`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateOffer(id: string, params: Partial<CreateOfferParams>): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/offers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async toggleOffer(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/offers/${id}/toggle`, { method: 'POST' });
+  },
+
+  async duplicateOffer(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/offers/${id}/duplicate`, { method: 'POST' });
+  },
+
+  async archiveOffer(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/offers/${id}/archive`, { method: 'POST' });
+  },
+
+  async deleteOffer(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/offers/${id}`, { method: 'DELETE' });
+  },
+
+  async generatePromoCode(): Promise<ApiResponse<{ code: string }>> {
+    return apiRequest(`${MARKETING_BASE}/offers/generate-code`, { method: 'POST' });
+  },
+
+  async validatePromoCode(code: string): Promise<ApiResponse<{ isValid: boolean; message?: string }>> {
+    return apiRequest(`${MARKETING_BASE}/offers/validate-code/${code}`);
+  },
+
+  // Welcome Offers
+  async getWelcomeOffers(): Promise<ApiResponse<WelcomeOffersResponse>> {
+    return apiRequest(`${MARKETING_BASE}/welcome-offers`);
+  },
+
+  async createWelcomeOffer(params: Omit<WelcomeOffer, 'id' | 'assignedCount' | 'redeemedCount'>): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/welcome-offers`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateWelcomeOffer(id: string, params: Partial<WelcomeOffer>): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/welcome-offers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async toggleWelcomeOffer(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/welcome-offers/${id}/toggle`, { method: 'POST' });
+  },
+
+  async deleteWelcomeOffer(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/welcome-offers/${id}`, { method: 'DELETE' });
+  },
+
+  // Campaigns
+  async getCampaignsDashboard(): Promise<ApiResponse<CampaignDashboardResponse>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns/dashboard`);
+  },
+
+  async getCampaignsList(params?: { status?: string; channel?: string }): Promise<ApiResponse<CampaignsListResponse>> {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.channel) searchParams.append('channel', params.channel);
+    const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return apiRequest(`${MARKETING_BASE}/campaigns${queryString}`);
+  },
+
+  async getCampaignDetail(id: string): Promise<ApiResponse<CampaignDetail>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns/${id}`);
+  },
+
+  async getCampaignRecipients(id: string, page?: number): Promise<ApiResponse<CampaignRecipientsResponse>> {
+    const queryString = page ? `?page=${page}` : '';
+    return apiRequest(`${MARKETING_BASE}/campaigns/${id}/recipients${queryString}`);
+  },
+
+  async createCampaign(params: CreateCampaignParams): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateCampaign(id: string, params: Partial<CreateCampaignParams>): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async pauseCampaign(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns/${id}/pause`, { method: 'POST' });
+  },
+
+  async resumeCampaign(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns/${id}/resume`, { method: 'POST' });
+  },
+
+  async duplicateCampaign(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns/${id}/duplicate`, { method: 'POST' });
+  },
+
+  async deleteCampaign(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/campaigns/${id}`, { method: 'DELETE' });
+  },
+
+  async getMessageTemplates(): Promise<ApiResponse<MessageTemplatesResponse>> {
+    return apiRequest(`${MARKETING_BASE}/templates`);
+  },
+
+  // Automations
+  async getAutomationsList(): Promise<ApiResponse<AutomationsListResponse>> {
+    return apiRequest(`${MARKETING_BASE}/automations`);
+  },
+
+  async getAutomationDetail(id: string): Promise<ApiResponse<AutomationWorkflow>> {
+    return apiRequest(`${MARKETING_BASE}/automations/${id}`);
+  },
+
+  async updateAutomation(id: string, params: UpdateAutomationParams): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/automations/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async toggleAutomation(id: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/automations/${id}/toggle`, { method: 'POST' });
+  },
+
+  async testAutomation(id: string, testPhone: string): Promise<ApiResponse<MutationResult>> {
+    return apiRequest(`${MARKETING_BASE}/automations/${id}/test`, {
+      method: 'POST',
+      body: JSON.stringify({ testPhone }),
+    });
+  },
+};

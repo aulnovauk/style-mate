@@ -14,6 +14,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, getDaysInMonth, getDate } from 'date-fns';
+import { usePayrollStats, useStaffPayrollBreakdown, usePayrollActions } from '@stylemate/core';
 import {
   COLORS,
   GRADIENTS,
@@ -181,115 +182,115 @@ function BreakdownCard({ label, value, percentage, color }: { label: string; val
 export default function PayrollOverview() {
   const router = useRouter();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<'monthly' | 'quarterly'>('monthly');
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'status'>('name');
+  
+  const { data: apiStats, loading: statsLoading, error: statsError, refetch: refetchStats } = usePayrollStats();
+  const { data: apiStaffBreakdown, loading: staffLoading, refetch: refetchStaff } = useStaffPayrollBreakdown();
+  const { payEntry, isSubmitting } = usePayrollActions();
+  
+  const loading = statsLoading || staffLoading;
 
-  const [stats, setStats] = useState<PayrollStats>({
-    totalPayroll: 24500000,
-    paidAmount: 18200000,
-    pendingAmount: 6300000,
-    totalStaff: 12,
-    baseSalaryTotal: 18500000,
-    commissionTotal: 4200000,
-    bonusTotal: 1800000,
-    deductionsTotal: 870000,
+  const stats = useMemo<PayrollStats>(() => {
+    let baseSalaryTotal = 0;
+    let commissionTotal = 0;
+    let bonusTotal = 0;
+    let deductionsTotal = 0;
+    let paidAmount = 0;
+    let pendingAmount = 0;
+    
+    if (apiStaffBreakdown && apiStaffBreakdown.length > 0) {
+      apiStaffBreakdown.forEach((entry: any) => {
+        const netPayable = entry.netPayablePaisa || 0;
+        baseSalaryTotal += entry.baseSalaryPaisa || 0;
+        commissionTotal += entry.commissionEarningsPaisa || 0;
+        bonusTotal += entry.bonusesPaisa || 0;
+        deductionsTotal += entry.totalDeductionsPaisa || 0;
+        
+        if (entry.paymentStatus === 'paid') {
+          paidAmount += netPayable;
+        } else {
+          pendingAmount += netPayable;
+        }
+      });
+    }
+    
+    const totalPayroll = paidAmount + pendingAmount;
+    const totalStaff = apiStats?.totalStaff || apiStaffBreakdown?.length || 0;
+    
+    return {
+      totalPayroll,
+      paidAmount,
+      pendingAmount,
+      totalStaff,
+      baseSalaryTotal,
+      commissionTotal,
+      bonusTotal,
+      deductionsTotal,
+    };
+  }, [apiStats, apiStaffBreakdown]);
+
+  const staffPayroll = useMemo<StaffPayrollItem[]>(() => {
+    if (!apiStaffBreakdown || apiStaffBreakdown.length === 0) {
+      return [];
+    }
+    return apiStaffBreakdown.map((entry: any) => {
+      const baseSalary = entry.baseSalaryPaisa || 0;
+      const commission = entry.commissionEarningsPaisa || 0;
+      const bonus = entry.bonusesPaisa || 0;
+      const totalDeductions = entry.totalDeductionsPaisa || 0;
+      const netPayable = entry.netPayablePaisa || 0;
+      const grossEarnings = entry.grossEarningsPaisa || 0;
+      
+      const tds = entry.tdsDeductionPaisa ?? entry.tdsPaisa ?? 0;
+      const pf = entry.pfDeductionPaisa ?? entry.pfPaisa ?? 0;
+      const esi = entry.esiDeductionPaisa ?? entry.esiPaisa ?? 0;
+      const otherDeductions = entry.otherDeductionsPaisa ?? 0;
+      const calculatedOther = totalDeductions > 0 ? Math.max(0, totalDeductions - tds - pf - esi) : otherDeductions;
+      
+      return {
+        id: entry.entryId || entry.staffId,
+        name: entry.staffName || 'Staff Member',
+        role: entry.staffRole || entry.role || entry.designation || 'Staff',
+        avatar: entry.avatarUrl || entry.avatar || null,
+        employmentType: (entry.employmentType || entry.staffEmploymentType || 'full_time') as 'full_time' | 'part_time' | 'contract',
+        employeeId: entry.employeeId || entry.staffEmployeeId || entry.staffId,
+        baseSalary,
+        commission,
+        bonus,
+        totalEarnings: grossEarnings,
+        deductions: {
+          tds: tds || Math.round(totalDeductions * 0.5),
+          pf: pf || Math.round(totalDeductions * 0.35),
+          other: calculatedOther || Math.round(totalDeductions * 0.15),
+          total: totalDeductions,
+        },
+        netPayable,
+        status: entry.paymentStatus === 'paid' ? 'paid' as const : 'pending' as const,
+      };
+    });
+  }, [apiStaffBreakdown]);
+
+  const [paymentHistory] = useState<PaymentHistoryItem[]>([]);
+
+  const [analytics] = useState<PayrollAnalytics>({
+    annualPayroll: 0,
+    payrollToRevenue: 0,
+    avgPerStaff: 0,
+    avgDaysToPay: 0,
+    trendData: [],
   });
 
-  const [staffPayroll, setStaffPayroll] = useState<StaffPayrollItem[]>([
-    {
-      id: '1',
-      name: 'Rahul Kumar',
-      role: 'Senior Stylist',
-      avatar: null,
-      employmentType: 'full_time',
-      employeeId: 'EMP001',
-      baseSalary: 2800000,
-      commission: 820000,
-      bonus: 300000,
-      totalEarnings: 3920000,
-      deductions: { tds: 180000, pf: 45000, other: 20000, total: 245000 },
-      netPayable: 3675000,
-      status: 'pending',
-    },
-    {
-      id: '2',
-      name: 'Anjali Reddy',
-      role: 'Makeup Artist',
-      avatar: null,
-      employmentType: 'full_time',
-      employeeId: 'EMP002',
-      baseSalary: 3200000,
-      commission: 1240000,
-      bonus: 500000,
-      totalEarnings: 4940000,
-      deductions: { tds: 240000, pf: 60000, other: 12000, total: 312000 },
-      netPayable: 4628000,
-      status: 'paid',
-    },
-    {
-      id: '3',
-      name: 'Vikram Singh',
-      role: 'Barber',
-      avatar: null,
-      employmentType: 'full_time',
-      employeeId: 'EMP003',
-      baseSalary: 2500000,
-      commission: 680000,
-      bonus: 200000,
-      totalEarnings: 3380000,
-      deductions: { tds: 150000, pf: 40000, other: 15000, total: 205000 },
-      netPayable: 3175000,
-      status: 'pending',
-    },
-    {
-      id: '4',
-      name: 'Priya Malhotra',
-      role: 'Hair Colorist',
-      avatar: null,
-      employmentType: 'part_time',
-      employeeId: 'EMP004',
-      baseSalary: 1800000,
-      commission: 560000,
-      bonus: 150000,
-      totalEarnings: 2510000,
-      deductions: { tds: 90000, pf: 25000, other: 10000, total: 125000 },
-      netPayable: 2385000,
-      status: 'pending',
-    },
-  ]);
-
-  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([
-    { id: '1', month: 'November', year: 2024, processedAt: 'Dec 1, 2024', status: 'completed', totalAmount: 23850000, staffCount: 12 },
-    { id: '2', month: 'October', year: 2024, processedAt: 'Nov 1, 2024', status: 'completed', totalAmount: 22280000, staffCount: 11 },
-    { id: '3', month: 'September', year: 2024, processedAt: 'Oct 1, 2024', status: 'completed', totalAmount: 21560000, staffCount: 10 },
-  ]);
-
-  const [analytics, setAnalytics] = useState<PayrollAnalytics>({
-    annualPayroll: 2880000000,
-    payrollToRevenue: 32,
-    avgPerStaff: 240000000,
-    avgDaysToPay: 2.5,
-    trendData: [
-      { month: 'Jul', amount: 1950000000 },
-      { month: 'Aug', amount: 2080000000 },
-      { month: 'Sep', amount: 2156000000 },
-      { month: 'Oct', amount: 2228000000 },
-      { month: 'Nov', amount: 2385000000 },
-      { month: 'Dec', amount: 2450000000 },
-    ],
+  const [deductionBreakdown] = useState<DeductionBreakdown>({
+    tds: 0,
+    pfContributions: 0,
+    insurancePremium: 0,
+    otherDeductions: 0,
+    total: 0,
   });
 
-  const [deductionBreakdown, setDeductionBreakdown] = useState<DeductionBreakdown>({
-    tds: 184500000,
-    pfContributions: 128000000,
-    insurancePremium: 86000000,
-    otherDeductions: 32500000,
-    total: 431000000,
-  });
-
-  const [commissionRules, setCommissionRules] = useState<CommissionRule[]>([
+  const [commissionRules] = useState<CommissionRule[]>([
     {
       id: '1',
       category: 'Hair Services',
@@ -297,8 +298,8 @@ export default function PayrollOverview() {
       rate: 15,
       icon: '✂️',
       gradient: GRADIENTS.primary as [string, string],
-      totalServicesThisMonth: 142,
-      commissionEarned: 186000000,
+      totalServicesThisMonth: 0,
+      commissionEarned: 0,
     },
     {
       id: '2',
@@ -307,80 +308,18 @@ export default function PayrollOverview() {
       rate: 20,
       icon: '💄',
       gradient: ['#EC4899', '#F43F5E'] as [string, string],
-      totalServicesThisMonth: 86,
-      commissionEarned: 248000000,
-    },
-    {
-      id: '3',
-      category: 'Spa & Wellness',
-      description: 'Facial, massage, body care',
-      rate: 12,
-      icon: '🧖',
-      gradient: GRADIENTS.info as [string, string],
-      totalServicesThisMonth: 64,
-      commissionEarned: 92000000,
-    },
-    {
-      id: '4',
-      category: 'Product Sales',
-      description: 'Retail products sold',
-      rate: 10,
-      icon: '🛍️',
-      gradient: GRADIENTS.warning as [string, string],
-      totalServicesThisMonth: 452000000,
-      commissionEarned: 45200000,
+      totalServicesThisMonth: 0,
+      commissionEarned: 0,
     },
   ]);
 
-  const [bonusIncentives, setBonusIncentives] = useState<BonusIncentive[]>([
-    {
-      id: '1',
-      type: 'performance',
-      title: 'Performance Bonus',
-      description: 'Top performers this month',
-      totalAmount: 120000000,
-      recipients: [
-        { name: 'Anjali Reddy', amount: 50000000 },
-        { name: 'Rahul Kumar', amount: 30000000 },
-        { name: 'Vikram Singh', amount: 20000000 },
-        { name: 'Priya Malhotra', amount: 15000000 },
-      ],
-    },
-    {
-      id: '2',
-      type: 'attendance',
-      title: 'Attendance Bonus',
-      description: 'Perfect attendance reward',
-      totalAmount: 60000000,
-      recipients: [
-        { name: 'Anjali Reddy', amount: 20000000 },
-        { name: 'Rahul Kumar', amount: 20000000 },
-        { name: 'Vikram Singh', amount: 20000000 },
-      ],
-      progress: { current: 10, target: 12 },
-    },
-  ]);
+  const [bonusIncentives] = useState<BonusIncentive[]>([]);
 
   const [showFilterModal, setShowFilterModal] = useState(false);
 
-  useEffect(() => {
-    loadPayrollData();
-  }, [selectedMonth]);
-
-  const loadPayrollData = async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (error) {
-      console.error('Error loading payroll data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadPayrollData();
+    await Promise.all([refetchStats(), refetchStaff()]);
     setRefreshing(false);
   };
 
@@ -407,8 +346,14 @@ export default function PayrollOverview() {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Pay Now',
-          onPress: () => {
-            Alert.alert('Success', `Payment of ${formatFullCurrency(staff.netPayable)} processed for ${staff.name}`);
+          onPress: async () => {
+            const result = await payEntry(staff.id);
+            if (result.success) {
+              Alert.alert('Success', `Payment of ${formatFullCurrency(staff.netPayable)} processed for ${staff.name}`);
+              handleRefresh();
+            } else {
+              Alert.alert('Error', result.error || 'Failed to process payment');
+            }
           },
         },
       ]
@@ -454,6 +399,19 @@ export default function PayrollOverview() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.violet} />
           <Text style={styles.loadingText}>Loading payroll data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (statsError) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Failed to load payroll data</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -1111,6 +1069,23 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: FONT_SIZES.md,
     marginTop: SPACING.md,
+  },
+  errorText: {
+    color: COLORS.textSecondary,
+    fontSize: FONT_SIZES.md,
+    textAlign: 'center',
+    marginBottom: SPACING.md,
+  },
+  retryButton: {
+    backgroundColor: COLORS.violet,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  retryButtonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',

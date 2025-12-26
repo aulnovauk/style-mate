@@ -92,6 +92,7 @@ import { registerMobilePackagesRoutes } from "./routes/mobile-packages.routes";
 import { registerMobileBusinessRoutes } from "./routes/mobile-business.routes";
 import { registerMobileInventoryRoutes } from "./routes/mobile-inventory.routes";
 import { registerMobileSettingsRoutes } from "./routes/mobile-settings.routes";
+import { registerMobileMarketingRoutes } from "./routes/mobile-marketing.routes";
 import { registerCancellationRoutes, registerMobileCancellationRoutes } from "./routes/cancellation.routes";
 import waitlistRoutes from "./routes/waitlist.routes";
 import mobileWaitlistRoutes from "./routes/mobile-waitlist.routes";
@@ -17864,6 +17865,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mobile offers routes (browse, save, redeem offers)
   registerMobileOffersRoutes(app);
   console.log('✅ Mobile offers routes registered');
+
+  // Mobile marketing routes (business app - offers, campaigns, automations)
+  registerMobileMarketingRoutes(app);
+  console.log('✅ Mobile marketing routes registered');
 
   // ===============================================
   // PRODUCT E-COMMERCE ROUTES

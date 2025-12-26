@@ -8,9 +8,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { usePayrollHistory } from '@stylemate/core';
 import {
   COLORS,
   GRADIENTS,
@@ -33,6 +34,8 @@ interface PayrollCycle {
   paidStaffCount: number;
 }
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 const formatCurrency = (amountInPaisa: number): string => {
   return `₹${(amountInPaisa / 100).toLocaleString('en-IN')}`;
 };
@@ -46,45 +49,57 @@ const STATUS_CONFIG = {
 
 export default function PayrollHistory() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const { data: apiCycles, loading, error, refetch } = usePayrollHistory(24);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(2024);
 
-  const [allCycles] = useState<PayrollCycle[]>([
-    { id: '1', month: 'December', year: 2024, periodStart: 'Dec 1', periodEnd: 'Dec 31', processedAt: '', status: 'pending', totalAmount: 24500000, paidAmount: 0, staffCount: 12, paidStaffCount: 0 },
-    { id: '2', month: 'November', year: 2024, periodStart: 'Nov 1', periodEnd: 'Nov 30', processedAt: 'Dec 1, 2024', status: 'completed', totalAmount: 23850000, paidAmount: 23850000, staffCount: 12, paidStaffCount: 12 },
-    { id: '3', month: 'October', year: 2024, periodStart: 'Oct 1', periodEnd: 'Oct 31', processedAt: 'Nov 1, 2024', status: 'completed', totalAmount: 22280000, paidAmount: 22280000, staffCount: 11, paidStaffCount: 11 },
-    { id: '4', month: 'September', year: 2024, periodStart: 'Sep 1', periodEnd: 'Sep 30', processedAt: 'Oct 1, 2024', status: 'completed', totalAmount: 21560000, paidAmount: 21560000, staffCount: 10, paidStaffCount: 10 },
-    { id: '5', month: 'August', year: 2024, periodStart: 'Aug 1', periodEnd: 'Aug 31', processedAt: 'Sep 1, 2024', status: 'completed', totalAmount: 20890000, paidAmount: 20890000, staffCount: 10, paidStaffCount: 10 },
-    { id: '6', month: 'July', year: 2024, periodStart: 'Jul 1', periodEnd: 'Jul 31', processedAt: 'Aug 1, 2024', status: 'completed', totalAmount: 19750000, paidAmount: 19750000, staffCount: 9, paidStaffCount: 9 },
-    { id: '7', month: 'June', year: 2024, periodStart: 'Jun 1', periodEnd: 'Jun 30', processedAt: 'Jul 1, 2024', status: 'completed', totalAmount: 18920000, paidAmount: 18920000, staffCount: 9, paidStaffCount: 9 },
-    { id: '8', month: 'December', year: 2023, periodStart: 'Dec 1', periodEnd: 'Dec 31', processedAt: 'Jan 1, 2024', status: 'completed', totalAmount: 17500000, paidAmount: 17500000, staffCount: 8, paidStaffCount: 8 },
-    { id: '9', month: 'November', year: 2023, periodStart: 'Nov 1', periodEnd: 'Nov 30', processedAt: 'Dec 1, 2023', status: 'completed', totalAmount: 16800000, paidAmount: 16800000, staffCount: 8, paidStaffCount: 8 },
-    { id: '10', month: 'October', year: 2023, periodStart: 'Oct 1', periodEnd: 'Oct 31', processedAt: 'Nov 1, 2023', status: 'completed', totalAmount: 16200000, paidAmount: 16200000, staffCount: 7, paidStaffCount: 7 },
-  ]);
+  const allCycles: PayrollCycle[] = useMemo(() => {
+    if (!apiCycles || apiCycles.length === 0) {
+      return [];
+    }
+    return apiCycles.map((cycle: any) => {
+      const monthName = MONTH_NAMES[cycle.periodMonth - 1] || 'Unknown';
+      const periodStart = cycle.periodStartDate 
+        ? new Date(cycle.periodStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : `${monthName.substring(0, 3)} 1`;
+      const periodEnd = cycle.periodEndDate
+        ? new Date(cycle.periodEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : `${monthName.substring(0, 3)} ${new Date(cycle.periodYear, cycle.periodMonth, 0).getDate()}`;
+      const processedAt = cycle.processedAt 
+        ? new Date(cycle.processedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '';
+      
+      let status: 'completed' | 'partial' | 'pending' | 'processing' = 'pending';
+      if (cycle.status === 'paid') status = 'completed';
+      else if (cycle.status === 'approved' || cycle.status === 'processed') status = 'processing';
+      else if (cycle.status === 'partial') status = 'partial';
+      
+      const totalAmount = cycle.totalNetPayablePaisa || 0;
+      const paidAmount = cycle.status === 'paid' ? totalAmount : 0;
+      
+      return {
+        id: cycle.id,
+        month: monthName,
+        year: cycle.periodYear,
+        periodStart,
+        periodEnd,
+        processedAt,
+        status,
+        totalAmount,
+        paidAmount,
+        staffCount: cycle.totalStaffCount || 0,
+        paidStaffCount: cycle.status === 'paid' ? (cycle.totalStaffCount || 0) : 0,
+      };
+    });
+  }, [apiCycles]);
 
   const filteredCycles = useMemo(() => {
     return allCycles.filter(cycle => cycle.year === selectedYear);
   }, [allCycles, selectedYear]);
 
-  useEffect(() => {
-    loadHistory();
-  }, [selectedYear]);
-
-  const loadHistory = async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (error) {
-      console.error('Error loading history:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadHistory();
+    await refetch();
     setRefreshing(false);
   };
 

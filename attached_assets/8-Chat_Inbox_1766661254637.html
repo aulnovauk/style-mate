@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Inbox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        violet: {
+                            600: '#8B5CF6',
+                        },
+                        fuchsia: {
+                            500: '#D946EF',
+                        },
+                        slate: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>::-webkit-scrollbar { display: none;}</style>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+
+<div id="mobile-container" class="max-w-md mx-auto bg-slate-900 min-h-screen relative pb-20">
+
+    <header id="chat-header" class="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button id="back-button" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-arrow-left text-slate-300"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg font-semibold">Messages</h1>
+                    <p class="text-xs text-slate-400">24 conversations</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="relative">
+                    <i class="fa-solid fa-bell text-slate-400 text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full text-xs flex items-center justify-center">3</span>
+                </button>
+                <button>
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-slate-700">
+                </button>
+            </div>
+        </div>
+        
+        <div class="px-4 pb-3">
+            <div class="relative">
+                <input type="text" placeholder="Search messages, clients..." class="w-full bg-slate-800 rounded-lg px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-600">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            </div>
+        </div>
+
+        <div id="chat-filters" class="px-4 pb-3 flex gap-2 overflow-x-auto">
+            <button class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-500 rounded-full text-xs font-medium whitespace-nowrap flex items-center gap-2 active:scale-95 transition-transform">
+                <span>All</span>
+                <span class="bg-white/20 px-2 py-0.5 rounded-full">24</span>
+            </button>
+            <button class="px-4 py-2 bg-slate-800 rounded-full text-xs font-medium text-slate-300 whitespace-nowrap flex items-center gap-2 active:scale-95 transition-transform">
+                <span>Unread</span>
+                <span class="bg-red-500 px-2 py-0.5 rounded-full">8</span>
+            </button>
+            <button class="px-4 py-2 bg-slate-800 rounded-full text-xs font-medium text-slate-300 whitespace-nowrap flex items-center gap-2 active:scale-95 transition-transform">
+                <span>Appointments</span>
+                <span class="bg-slate-700 px-2 py-0.5 rounded-full">12</span>
+            </button>
+            <button class="px-4 py-2 bg-slate-800 rounded-full text-xs font-medium text-slate-300 whitespace-nowrap flex items-center gap-2 active:scale-95 transition-transform">
+                <span>Inquiries</span>
+                <span class="bg-slate-700 px-2 py-0.5 rounded-full">4</span>
+            </button>
+            <button class="px-4 py-2 bg-slate-800 rounded-full text-xs font-medium text-slate-300 whitespace-nowrap active:scale-95 transition-transform">
+                Archived
+            </button>
+        </div>
+    </header>
+
+    <main id="chat-main" class="px-4 py-4 space-y-4">
+
+        <section id="pinned-conversations-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide flex items-center gap-2">
+                    <i class="fa-solid fa-thumbtack text-violet-400"></i>
+                    Pinned
+                </h2>
+                <span class="text-xs text-slate-500">2</span>
+            </div>
+
+            <div id="pinned-chat-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Priya Sharma</h3>
+                            <span class="text-xs text-slate-400">2m ago</span>
+                        </div>
+                        <p class="text-sm text-slate-300 mb-2 line-clamp-2">Thank you so much! The hair styling was perfect. Can I book the same slot for next month?</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs bg-violet-600/20 text-violet-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                    <i class="fa-solid fa-calendar text-xs"></i>
+                                    Appointment
+                                </span>
+                                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-phone text-violet-400 text-sm"></i>
+                                </button>
+                                <button class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-video text-violet-400 text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pinned-chat-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-6.jpg" alt="Client" class="w-14 h-14 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Neha Gupta</h3>
+                            <span class="text-xs text-slate-400">15m ago</span>
+                        </div>
+                        <p class="text-sm text-slate-300 mb-2 line-clamp-2">Hi! I need to reschedule my bridal makeup trial. Is Saturday available?</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    Reschedule
+                                </span>
+                                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-phone text-violet-400 text-sm"></i>
+                                </button>
+                                <button class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center active:scale-95 transition-transform">
+                                    <i class="fa-solid fa-video text-violet-400 text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recent-conversations-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Recent</h2>
+                <span class="text-xs text-slate-500">22 conversations</span>
+            </div>
+
+            <div id="chat-item-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Amit Patel</h3>
+                            <span class="text-xs text-slate-400">1h ago</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">Sure, I'll be there by 10:30 AM tomorrow. Thanks!</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-check-double text-xs"></i>
+                                Confirmed
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-7.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Anjali Reddy</h3>
+                            <span class="text-xs text-slate-400">2h ago</span>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-image text-violet-400 text-sm"></i>
+                            <p class="text-sm text-slate-300">Sent 3 photos</p>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-question-circle text-xs"></i>
+                                Inquiry
+                            </span>
+                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Rajesh Kumar</h3>
+                            <span class="text-xs text-slate-400">3h ago</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">What are your rates for hair coloring? I'm interested in highlights.</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-question-circle text-xs"></i>
+                                Inquiry
+                            </span>
+                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-4" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Kavita Singh</h3>
+                            <span class="text-xs text-slate-400">4h ago</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">Thank you! The facial was amazing. See you next week!</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-star text-xs"></i>
+                                Review Sent
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-5" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-9.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Rohit Verma</h3>
+                            <span class="text-xs text-slate-400">5h ago</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">Can I get an appointment for tomorrow afternoon? Preferably after 3 PM.</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-violet-600/20 text-violet-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-calendar text-xs"></i>
+                                New Booking
+                            </span>
+                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-6" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Vikram Singh</h3>
+                            <span class="text-xs text-slate-400">Yesterday</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">Perfect! I'll see you on Saturday at 2 PM.</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-check-double text-xs"></i>
+                                Confirmed
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-7" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-8.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Meera Kapoor</h3>
+                            <span class="text-xs text-slate-400">Yesterday</span>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-file-pdf text-red-400 text-sm"></i>
+                            <p class="text-sm text-slate-300">Invoice_March2024.pdf</p>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-credit-card text-xs"></i>
+                                Payment Received
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-8" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Sanjana Patel</h3>
+                            <span class="text-xs text-slate-400">2 days ago</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">Do you have any special packages for bridal makeup and hair?</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-question-circle text-xs"></i>
+                                Package Inquiry
+                            </span>
+                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-9" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Arjun Mehta</h3>
+                            <span class="text-xs text-slate-400">2 days ago</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">Thanks for the great service! Will recommend to my friends.</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-star text-xs"></i>
+                                5 Star Review
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-item-10" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="relative flex-shrink-0">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-6.jpg" alt="Client" class="w-12 h-12 rounded-full object-cover">
+                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-sm">Divya Sharma</h3>
+                            <span class="text-xs text-slate-400">3 days ago</span>
+                        </div>
+                        <p class="text-sm text-slate-400 line-clamp-2">I need to cancel my appointment for tomorrow. Sorry for the inconvenience.</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs bg-red-600/20 text-red-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-times-circle text-xs"></i>
+                                Cancelled
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quick-replies-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Quick Replies</h2>
+                <button class="text-xs text-violet-400 flex items-center gap-1">
+                    <span>Manage</span>
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 space-y-3">
+                <div id="quick-reply-1" class="flex items-center justify-between p-3 bg-slate-700 rounded-lg active:bg-slate-600 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-violet-600/20 flex items-center justify-center">
+                            <i class="fa-solid fa-check text-violet-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Confirm Appointment</h3>
+                            <p class="text-xs text-slate-400">Your appointment is confirmed for...</p>
+                        </div>
+                    </div>
+                    <button class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-copy text-violet-400 text-sm"></i>
+                    </button>
+                </div>
+
+                <div id="quick-reply-2" class="flex items-center justify-between p-3 bg-slate-700 rounded-lg active:bg-slate-600 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-amber-600/20 flex items-center justify-center">
+                            <i class="fa-solid fa-clock text-amber-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Reschedule Request</h3>
+                            <p class="text-xs text-slate-400">We can reschedule your appointment...</p>
+                        </div>
+                    </div>
+                    <button class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-copy text-violet-400 text-sm"></i>
+                    </button>
+                </div>
+
+                <div id="quick-reply-3" class="flex items-center justify-between p-3 bg-slate-700 rounded-lg active:bg-slate-600 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center">
+                            <i class="fa-solid fa-indian-rupee-sign text-blue-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Pricing Information</h3>
+                            <p class="text-xs text-slate-400">Our service prices are as follows...</p>
+                        </div>
+                    </div>
+                    <button class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-copy text-violet-400 text-sm"></i>
+                    </button>
+                </div>
+
+                <div id="quick-reply-4" class="flex items-center justify-between p-3 bg-slate-700 rounded-lg active:bg-slate-600 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center">
+                            <i class="fa-solid fa-thumbs-up text-green-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Thank You Message</h3>
+                            <p class="text-xs text-slate-400">Thank you for choosing our salon...</p>
+                        </div>
+                    </div>
+                    <button class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-copy text-violet-400 text-sm"></i>
+                    </button>
+                </div>
+
+                <div id="quick-reply-5" class="flex items-center justify-between p-3 bg-slate-700 rounded-lg active:bg-slate-600 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-purple-600/20 flex items-center justify-center">
+                            <i class="fa-solid fa-map-marker-alt text-purple-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Location & Directions</h3>
+                            <p class="text-xs text-slate-400">We are located at Downtown Branch...</p>
+                        </div>
+                    </div>
+                    <button class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-copy text-violet-400 text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="message-stats-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Message Statistics</h2>
+                <button class="text-xs text-violet-400">View Details</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                            <i class="fa-solid fa-envelope text-white"></i>
+                        </div>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            24%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">156</p>
+                    <p class="text-xs text-slate-400 mt-1">Messages Today</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <i class="fa-solid fa-reply text-white"></i>
+                        </div>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            18%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">2.5m</p>
+                    <p class="text-xs text-slate-400 mt-1">Avg Response</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                            <i class="fa-solid fa-clock text-white"></i>
+                        </div>
+                        <span class="text-xs text-red-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-down text-xs"></i>
+                            5%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">8</p>
+                    <p class="text-xs text-slate-400 mt-1">Pending</p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                            <i class="fa-solid fa-percentage text-white"></i>
+                        </div>
+                        <span class="text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                            12%
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold">94%</p>
+                    <p class="text-xs text-slate-400 mt-1">Response Rate</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="automated-messages-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Automated Messages</h2>
+                <button class="text-xs text-violet-400 flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i>
+                    Add New
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div id="auto-message-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-robot text-green-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm">Appointment Reminder</h3>
+                                <p class="text-xs text-slate-400 mt-1">Sent 24 hours before appointment</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-violet-600 peer-checked:to-fuchsia-500"></div>
+                        </label>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-3">
+                        <p class="text-xs text-slate-300">Hi {client_name}, this is a reminder about your appointment tomorrow at {time}. Looking forward to seeing you!</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-3 text-xs text-slate-400">
+                        <span>Sent to 45 clients this week</span>
+                        <button class="text-violet-400">Edit</button>
+                    </div>
+                </div>
+
+                <div id="auto-message-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-robot text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm">Welcome Message</h3>
+                                <p class="text-xs text-slate-400 mt-1">Sent to new clients automatically</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-violet-600 peer-checked:to-fuchsia-500"></div>
+                        </label>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-3">
+                        <p class="text-xs text-slate-300">Welcome to Glamour Studio! We're excited to have you. Feel free to reach out if you have any questions about our services.</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-3 text-xs text-slate-400">
+                        <span>Sent to 18 new clients</span>
+                        <button class="text-violet-400">Edit</button>
+                    </div>
+                </div>
+
+                <div id="auto-message-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-robot text-purple-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-sm">Feedback Request</h3>
+                                <p class="text-xs text-slate-400 mt-1">Sent 2 hours after appointment</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-violet-600 peer-checked:to-fuchsia-500"></div>
+                        </label>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-3">
+                        <p class="text-xs text-slate-300">Hi {client_name}, we hope you enjoyed your visit! We'd love to hear your feedback. Please rate your experience.</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-3 text-xs text-slate-400">
+                        <span>Currently disabled</span>
+                        <button class="text-violet-400">Edit</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="message-templates-section" class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Message Templates</h2>
+                <button class="text-xs text-violet-400 flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i>
+                    Create Template
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div id="template-card-1" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-calendar-check text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Booking Confirmation</h3>
+                    <p class="text-xs text-slate-400 mb-3">Used 156 times</p>
+                    <button class="w-full bg-slate-700 text-white py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                        Use Template
+                    </button>
+                </div>
+
+                <div id="template-card-2" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-clock text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Running Late</h3>
+                    <p class="text-xs text-slate-400 mb-3">Used 42 times</p>
+                    <button class="w-full bg-slate-700 text-white py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                        Use Template
+                    </button>
+                </div>
+
+                <div id="template-card-3" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-gift text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Special Offer</h3>
+                    <p class="text-xs text-slate-400 mb-3">Used 89 times</p>
+                    <button class="w-full bg-slate-700 text-white py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                        Use Template
+                    </button>
+                </div>
+
+                <div id="template-card-4" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-star text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Review Request</h3>
+                    <p class="text-xs text-slate-400 mb-3">Used 73 times</p>
+                    <button class="w-full bg-slate-700 text-white py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                        Use Template
+                    </button>
+                </div>
+
+                <div id="template-card-5" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-heart text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Birthday Wishes</h3>
+                    <p class="text-xs text-slate-400 mb-3">Used 34 times</p>
+                    <button class="w-full bg-slate-700 text-white py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                        Use Template
+                    </button>
+                </div>
+
+                <div id="template-card-6" class="bg-slate-800 rounded-xl p-4 border border-slate-700 active:bg-slate-750 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-times-circle text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm mb-1">Cancellation</h3>
+                    <p class="text-xs text-slate-400 mb-3">Used 28 times</p>
+                    <button class="w-full bg-slate-700 text-white py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform">
+                        Use Template
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="broadcast-messages-section" class="space-y-3 mb-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">Broadcast Messages</h2>
+                <button class="text-xs text-violet-400 flex items-center gap-1">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    New Broadcast
+                </button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-megaphone text-white text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold mb-1">Send to Multiple Clients</h3>
+                        <p class="text-xs text-slate-400">Create and send promotional messages, offers, or announcements to selected client groups</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-users text-violet-400"></i>
+                            <span class="text-sm">All Active Clients</span>
+                        </div>
+                        <span class="text-xs text-slate-400">342 clients</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-star text-amber-400"></i>
+                            <span class="text-sm">VIP Clients</span>
+                        </div>
+                        <span class="text-xs text-slate-400">58 clients</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-clock text-blue-400"></i>
+                            <span class="text-sm">Inactive (30+ days)</span>
+                        </div>
+                        <span class="text-xs text-slate-400">23 clients</span>
+                    </div>
+                </div>
+
+                <button class="w-full mt-4 bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white py-3 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                    <i class="fa-solid fa-paper-plane mr-2"></i>
+                    Create Broadcast Message
+                </button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <h3 class="font-semibold text-sm mb-3">Recent Broadcasts</h3>
+                
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3 p-3 bg-slate-700 rounded-lg">
+                        <div class="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-check text-green-400"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-sm">Weekend Special Offer</h4>
+                            <p class="text-xs text-slate-400 mt-1">Sent to 342 clients • 2 days ago</p>
+                            <div class="flex items-center gap-4 mt-2 text-xs">
+                                <span class="text-green-400">285 delivered</span>
+                                <span class="text-blue-400">156 opened</span>
+                                <span class="text-violet-400">42 clicked</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3 bg-slate-700 rounded-lg">
+                        <div class="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-check text-green-400"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-sm">New Service Launch</h4>
+                            <p class="text-xs text-slate-400 mt-1">Sent to 342 clients • 5 days ago</p>
+                            <div class="flex items-center gap-4 mt-2 text-xs">
+                                <span class="text-green-400">298 delivered</span>
+                                <span class="text-blue-400">178 opened</span>
+                                <span class="text-violet-400">67 clicked</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-navigation" class="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 max-w-md mx-auto">
+        <div class="flex items-center justify-around py-2">
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-house text-xl"></i>
+                <span class="text-xs">Home</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-calendar text-xl"></i>
+                <span class="text-xs">Calendar</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 -mt-8">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/50">
+                    <i class="fa-solid fa-plus text-white text-2xl"></i>
+                </div>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-slate-400">
+                <i class="fa-solid fa-users text-xl"></i>
+                <span class="text-xs">Clients</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 px-4 py-2 text-violet-400">
+                <div class="relative">
+                    <i class="fa-solid fa-message text-xl"></i>
+                    <span class="absolute -top-1 -right-2 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center">8</span>
+                </div>
+                <span class="text-xs font-medium">Messages</span>
+            </button>
+        </div>
+    </nav>
+
+    <button id="compose-fab" class="fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-full shadow-lg shadow-violet-500/50 flex items-center justify-center active:scale-95 transition-transform">
+        <i class="fa-solid fa-pen text-white text-xl"></i>
+    </button>
+
+</div>
+
+</body>
+</html>
